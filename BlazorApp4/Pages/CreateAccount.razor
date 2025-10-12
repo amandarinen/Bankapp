@@ -1,0 +1,110 @@
+﻿@page "/CreateAccount"
+@inject IAccountService AccountService;
+
+<h3>Create Account</h3>
+<EditForm Model="_model" OnValidSubmit="CreateAccountAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>
+        <label>Account Name</label>
+        <InputText @bind-Value="_model.Name" />
+    </div>
+
+    <div>
+        <label>Account Type</label>
+        <InputSelect @bind-Value="_model.AccountType">
+            <option value="@AccountType.Deposit">Deposit Account</option>
+            <option value="@AccountType.Savings">Savings Account</option>
+        </InputSelect>
+    </div>
+
+    <div>
+        <label>Currency</label>
+        <InputSelect @bind-Value="_model.Currency">
+            <option value="@CurrencyType.SEK">SEK</option>
+            <option value="@CurrencyType.Euro">Euro</option>
+        </InputSelect>
+    </div>
+
+    <div>
+        <label>Balance</label>
+        <InputNumber @bind-Value="_model.InitialBalance"></InputNumber>
+        
+    </div>
+
+    <button type="submit">Create</button>
+    </EditForm>
+
+
+<h4>Alla konton</h4>
+@if(_accounts.Count == 0)
+{
+    <p>Det finns inga konton ännu, registrera ditt första ovan!</p>
+}
+else
+{
+    <ul>
+        @foreach(var account in _accounts)
+        {
+            <li>
+                <strong>@account.Name</strong> - @account.AccountType - @account.Balance - @account.Currency
+                <small>(uppdaterad @account.LastUpdated.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss"))</small>
+            </li>
+        }
+    </ul>
+}
+
+
+@code {
+    private CreateAccountModel _model = new();
+    private List<IBankAccount> _accounts = new();
+
+    protected override void OnInitialized()
+    {
+        _accounts = AccountService.GetAccounts().ToList();
+        base.OnInitialized();
+    }
+    private Task CreateAccountAsync()
+    {
+        try
+        {
+            Console.WriteLine(_model.Name);
+
+            AccountService.CreateAccount(
+                _model.Name,
+                _model.AccountType,
+                _model.Currency,
+                _model.InitialBalance);
+
+            _accounts = AccountService.GetAccounts().ToList();
+            _model.Clear();
+        }
+
+        catch (Exception exception)
+        {
+            Console.WriteLine(exception);
+            throw;
+
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private class CreateAccountModel
+    {
+        public string? Name { get; set; }
+        public AccountType AccountType { get; set; }
+        public CurrencyType Currency { get; set; }
+        public decimal InitialBalance { get; set; } = 0;
+
+        public void Clear()
+        {
+            Name = string.Empty;
+            AccountType = AccountType.Deposit;
+            Currency = CurrencyType.SEK;
+            InitialBalance = 0;
+        }
+    }
+
+   
+}
