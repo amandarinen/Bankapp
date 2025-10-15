@@ -49,6 +49,7 @@ else
             <li>
                 <strong>@account.Name</strong> - @account.AccountType - @account.Balance - @account.Currency
                 <small>(uppdaterad @account.LastUpdated.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss"))</small>
+                
             </li>
         }
     </ul>
@@ -56,27 +57,38 @@ else
 
 
 @code {
+
+    
+
+
     private CreateAccountModel _model = new();
     private List<IBankAccount> _accounts = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        _accounts = AccountService.GetAccounts().ToList();
-        base.OnInitialized();
+
+        {
+            _accounts = await AccountService.GetAccounts();
+
+            //await base.OnInitializedAsync();
+        }
+
     }
-    private Task CreateAccountAsync()
+
+
+    private async Task CreateAccountAsync()
     {
         try
         {
             Console.WriteLine(_model.Name);
 
-            AccountService.CreateAccount(
+            await AccountService.CreateAccount(
                 _model.Name,
                 _model.AccountType,
                 _model.Currency,
                 _model.InitialBalance);
 
-            _accounts = AccountService.GetAccounts().ToList();
+            _accounts = await AccountService.GetAccounts();
             _model.Clear();
         }
 
@@ -87,7 +99,7 @@ else
 
         }
 
-        return Task.CompletedTask;
+        
     }
 
     /// <summary>
