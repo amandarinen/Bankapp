@@ -5,5 +5,7 @@ namespace BlazorApp4.Interfaces
     {
         Task <IBankAccount> CreateAccount(string name, AccountType accountType, CurrencyType currency, decimal initialBalance);
         Task<List<IBankAccount>> GetAccounts();
+
+        Task DeleteAccount(Guid Id);
     }
 }
