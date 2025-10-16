@@ -7,5 +7,7 @@ namespace BlazorApp4.Interfaces
         Task<List<IBankAccount>> GetAccounts();
 
         Task DeleteAccount(Guid Id);
+        Task UpdateAccount(IBankAccount updatedAccount);
+
     }
 }

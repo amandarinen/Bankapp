@@ -1,21 +1,38 @@
-﻿namespace BlazorApp4.Domain
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BlazorApp4.Domain
 {
     public enum TransactionType
     {
         Deposit,
         Withdrawal,
-        Transfer
+        TransferIn,
+        TransferOut
     }
 
     public class Transaction
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public DateTime Date { get; set; } = DateTime.Now;
-        public TransactionType Type { get; set; }
+        public DateTime TimeStamp { get; set; } = DateTime.Now;
+        public TransactionType transactionType { get; set; }
         public decimal Amount { get; set; }
         public CurrencyType Currency { get; set; }
         public decimal BalanceAfterTransaction { get; set; }
         public Guid? FromAccountId { get; set; }
         public Guid? ToAccountId { get; set; }
+
+
+        public Transaction()
+        {
+            TimeStamp = DateTime.UtcNow;
+        }
+
+        public Transaction(Guid fromAccountId, Guid toAccountId, decimal amount)
+        {
+            FromAccountId = fromAccountId;
+            ToAccountId = toAccountId;
+            Amount = amount;
+            TimeStamp = DateTime.UtcNow;
+        }
     }
 }

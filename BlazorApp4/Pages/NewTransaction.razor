@@ -1,7 +1,112 @@
 ﻿@page "/NewTransaction"
+@using BlazorApp4.Domain
+@using BlazorApp4.Services
+@inject IAccountService AccountService
+@inject IJSRuntime JS
 
-<h3>New Transaction</h3>
+<h3 class="mb-3">Transaction</h3>
 
-@code {
+ <EditForm Model="_model" OnValidSubmit="HandleTransactionAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger mb-3" />
 
-}
+        <div class="mb-3">
+            <label class="form-label">Choose Account</label>
+            <InputSelect @bind-Value="_model.SelectedAccountId" class="form-select">
+                <option value="">Choose Account</option>
+                @foreach (var account in _accounts)
+                {
+                    <option value="@account.Id">@account.Name (@account.Balance @account.Currency)</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Transaction Type</label>
+            <InputSelect @bind-Value="_model.TransactionType" class="form-select">
+                <option value="@TransactionType.Deposit">Deposit</option>
+                <option value="@TransactionType.Withdrawal">Withdraw</option>
+            </InputSelect>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Amount</label>
+            <InputNumber @bind-Value="_model.Amount" class="form-control" min="0.01" step="0.01" />
+        </div>
+
+        <button type="submit" class="btn btn-primary ">Complete Transaction</button>
+    </EditForm>
+
+
+
+@code 
+{
+    private List<IBankAccount> _accounts = new();
+    private TransactionModel _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _accounts = await AccountService.GetAccounts();
+    }
+
+    private async Task HandleTransactionAsync()
+    {
+        if (_model.SelectedAccountId == Guid.Empty)
+        {
+            Console.WriteLine("Inget konto valt.");
+            return;
+        }
+
+        var account = _accounts.FirstOrDefault(account => account.Id == _model.SelectedAccountId);
+        if (account is null)
+        {
+            Console.WriteLine("Konto hittades inte.");
+            return;
+        }
+
+        try
+        {
+            switch (_model.TransactionType)
+            {
+                case TransactionType.Deposit:
+                    account.Deposit(_model.Amount);
+                    break;
+
+                case TransactionType.Withdrawal:
+                    account.Withdraw(_model.Amount);
+                    break;
+            }
+
+            await AccountService.UpdateAccount(account); //spara
+
+            _accounts = await AccountService.GetAccounts();
+
+            _model.Amount = 0;
+            _model.TransactionType = TransactionType.Deposit;
+
+            StateHasChanged(); // uppdaterar UI
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fel vid transaktion: {ex.Message}");
+            await JS.InvokeVoidAsync("alert", $"Fel: {ex.Message}");
+        }
+
+        }
+
+        private class TransactionModel
+        {
+        public Guid SelectedAccountId { get; set; }
+        public TransactionType TransactionType { get; set; } = TransactionType.Deposit;
+        public decimal Amount { get; set; }
+
+        public void Clear()
+            {
+            SelectedAccountId = Guid.Empty;
+            TransactionType = TransactionType.Deposit;
+            Amount = 0;
+            }
+        }
+    }
+
+

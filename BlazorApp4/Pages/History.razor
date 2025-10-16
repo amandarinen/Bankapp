@@ -1,7 +1,32 @@
 ﻿@page "/History"
+@using BlazorApp4.Services
+@inject IAccountService AccountService;
 
-<h3>History</h3>
+<h3 class="mb-3">History</h3>
+
+<div class="mb-3">
+    <label class="form-label">Choose Account</label>
+    <InputSelect @bind-Value="_selectedAccountId" class="form-select">
+        <option value="">-- Select an account --</option>
+        @foreach (var account in _accounts)
+        {
+            <option value="@account.Id">@account.Name</option>
+        }
+    </InputSelect>
+</div>
+
+@if (_selectedAccountId != Guid.Empty)
+{
+    <p>Valt konto-ID: @_selectedAccountId</p>
+    
+}
 
 @code {
+    private List<IBankAccount> _accounts = new();
+    private Guid _selectedAccountId = Guid.Empty; // håller reda på valt konto
 
+    protected override async Task OnInitializedAsync()
+    {
+        _accounts = await AccountService.GetAccounts(); // hämta konton från service
+    }
 }

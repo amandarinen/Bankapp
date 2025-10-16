@@ -18,12 +18,13 @@ namespace BlazorApp4.Domain
 
         public DateTime LastUpdated { get; private set; }
 
-        public List<Transaction> Transactions { get; private set; } = new();
+        public readonly List<Transaction> _transaction = new List<Transaction>();
+        
 
         public BankAccount(string name, AccountType accountType, CurrencyType currency, decimal initialBalance)
         {
             Name = name;
-            AccountType = AccountType;
+            AccountType = accountType;
             Currency = currency;
             Balance = initialBalance;
             LastUpdated = DateTime.Now;
@@ -42,13 +43,13 @@ namespace BlazorApp4.Domain
 
         public void Deposit(decimal amount)
         {
-            if (amount <= 0) throw new ArgumentException("Beloppet måste vara större än 0!");
+            if (amount < 0) throw new ArgumentException("Beloppet måste vara större än 0!");
             Balance += amount;
-            LastUpdated = DateTime.Now;
-
-            Transactions.Add(new Transaction
+            LastUpdated = DateTime.UtcNow;
+            
+            _transaction.Add(new Transaction
             {
-                Type = TransactionType.Deposit,
+                transactionType = TransactionType.Deposit,
                 Amount = amount,
                 BalanceAfterTransaction = Balance
             });
@@ -56,15 +57,15 @@ namespace BlazorApp4.Domain
 
         public void Withdraw(decimal amount)
         {
-            if (amount <= 0) throw new ArgumentException("Beloppet måste vara större än 0!");
+            if (amount < 0) throw new ArgumentException("Beloppet måste vara större än 0!");
 
             if (Balance < amount) throw new InvalidOperationException("Inte tillräckligt saldo!");
             Balance -= amount;
-            LastUpdated = DateTime.Now;
+            LastUpdated = DateTime.UtcNow;
 
-            Transactions.Add(new Transaction
+            _transaction.Add(new Transaction
             {
-                Type = TransactionType.Withdrawal,
+                transactionType = TransactionType.Withdrawal,
                 Amount = amount,
                 BalanceAfterTransaction = Balance
             });

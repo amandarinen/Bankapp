@@ -55,6 +55,20 @@ namespace BlazorApp4.Services
                 
             }
         }
+
+        public async Task UpdateAccount(IBankAccount updatedAccount)
+        {
+            await IsInitialized();
+
+            var existing = _accounts.FirstOrDefault(account => account.Id == updatedAccount.Id);
+            if (existing != null)
+            {
+                _accounts.Remove(existing);
+                _accounts.Add(updatedAccount);
+                await SaveAsync();
+            }
+        }
+
     }
 }
 
