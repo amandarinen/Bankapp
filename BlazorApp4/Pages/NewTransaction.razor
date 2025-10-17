@@ -2,18 +2,27 @@
 @using BlazorApp4.Domain
 @using BlazorApp4.Services
 @inject IAccountService AccountService
-@inject IJSRuntime JS
+
 
 <h3 class="mb-3">Transaction</h3>
 
- <EditForm Model="_model" OnValidSubmit="HandleTransactionAsync">
+@if (_accounts.Count <2)
+{
+    <p>Skapa minst två konton för att göra en transaktion</p>
+}
+else
+{
+ <EditForm Model="_model" OnValidSubmit="OnSubmitAsync">
         <DataAnnotationsValidator />
         <ValidationSummary class="text-danger mb-3" />
 
         <div class="mb-3">
-            <label class="form-label">Choose Account</label>
-            <InputSelect @bind-Value="_model.SelectedAccountId" class="form-select">
-                <option value="">Choose Account</option>
+            <label class="form-label">Transfer from</label>
+            <InputSelect TValue="Guid"
+                         @bind-Value="_model.FromAccountId" 
+                         class="form-select"
+                         @onchange="HandleFormChanged">
+                <option value="@Guid.Empty">Choose Account</option>
                 @foreach (var account in _accounts)
                 {
                     <option value="@account.Id">@account.Name (@account.Balance @account.Currency)</option>
@@ -22,91 +31,118 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Transaction Type</label>
-            <InputSelect @bind-Value="_model.TransactionType" class="form-select">
-                <option value="@TransactionType.Deposit">Deposit</option>
-                <option value="@TransactionType.Withdrawal">Withdraw</option>
+            <label class="form-label">Transfer to</label>
+            <InputSelect TValue="Guid"
+                        @bind-Value="_model.ToAccountId" 
+                        class="form-select"
+                        disabled="@(_model.FromAccountId == Guid.Empty)">
+                <option value="@Guid.Empty">Choose Account</option>
+                @foreach (var account in _toAccounts)
+                {
+                    <option value="@account.Id">@account.Name (@account.Balance @account.Currency)</option>
+                }
             </InputSelect>
         </div>
 
         <div class="mb-3">
             <label class="form-label">Amount</label>
-            <InputNumber @bind-Value="_model.Amount" class="form-control" min="0.01" step="0.01" />
+            <InputNumber TValue="decimal" @bind-Value="_model.Amount" class="form-control" min="0.01" step="0.01" />
         </div>
-
+        <div class="mb-3">
         <button type="submit" class="btn btn-primary ">Complete Transaction</button>
+        </div>
     </EditForm>
-
+   
+    <div class="mb-3">
+    <h4>Konton</h4>
+    <ul>
+        @foreach (var account in _accounts)
+        {
+            <li>@account.Name - Balance: @account.Balance</li>
+        }
+    </ul>
+    </div>
+}
 
 
 @code 
 {
+    private readonly TransferFormModel _model = new();
     private List<IBankAccount> _accounts = new();
-    private TransactionModel _model = new();
+    private List<IBankAccount> _toAccounts = new();
+
+    private class TransferFormModel
+    {
+        public Guid FromAccountId { get; set; }
+        public Guid ToAccountId { get; set; }
+        public decimal Amount { get; set; }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         _accounts = await AccountService.GetAccounts();
+
+        _toAccounts = _accounts;
     }
 
-    private async Task HandleTransactionAsync()
+    private async Task OnSubmitAsync()
     {
-        if (_model.SelectedAccountId == Guid.Empty)
+        if (_model.FromAccountId == Guid.Empty || _model.ToAccountId == Guid.Empty)
         {
-            Console.WriteLine("Inget konto valt.");
-            return;
+            StateHasChanged();
+            //return Task.CompletedTask;
         }
 
-        var account = _accounts.FirstOrDefault(account => account.Id == _model.SelectedAccountId);
-        if (account is null)
+        if (_model.FromAccountId == _model.ToAccountId)
         {
-            Console.WriteLine("Konto hittades inte.");
-            return;
+            StateHasChanged();
+            //return Task.CompletedTask;
         }
-
         try
         {
-            switch (_model.TransactionType)
-            {
-                case TransactionType.Deposit:
-                    account.Deposit(_model.Amount);
-                    break;
+            await AccountService.Transfer(_model.FromAccountId, _model.ToAccountId, _model.Amount);
 
-                case TransactionType.Withdrawal:
-                    account.Withdraw(_model.Amount);
-                    break;
-            }
-
-            await AccountService.UpdateAccount(account); //spara
-
+            //uppdatera lista
             _accounts = await AccountService.GetAccounts();
 
+            //visa bekräftelse
+            var from = _accounts.First(x => x.Id == _model.FromAccountId);
+            var to = _accounts.First(x => x.Id == _model.ToAccountId);
+
             _model.Amount = 0;
-            _model.TransactionType = TransactionType.Deposit;
-
-            StateHasChanged(); // uppdaterar UI
+            StateHasChanged();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            Console.WriteLine($"Fel vid transaktion: {ex.Message}");
-            await JS.InvokeVoidAsync("alert", $"Fel: {ex.Message}");
+            Console.WriteLine(exception.Message);
         }
+        
+    }
 
-        }
-
-        private class TransactionModel
+    private void HandleFormChanged(ChangeEventArgs eventArgs)
+    {
+        if (Guid.TryParse(eventArgs.Value?.ToString(), out var id))
         {
-        public Guid SelectedAccountId { get; set; }
-        public TransactionType TransactionType { get; set; } = TransactionType.Deposit;
-        public decimal Amount { get; set; }
-
-        public void Clear()
-            {
-            SelectedAccountId = Guid.Empty;
-            TransactionType = TransactionType.Deposit;
-            Amount = 0;
-            }
+            OnFormChanged(id);
         }
+    }
+
+    private void OnFormChanged(Guid fromId)
+    {
+        _model.FromAccountId = fromId;
+        var from = _accounts.FirstOrDefault(x => x.Id == fromId);
+
+        if (from != null)
+        {
+            _toAccounts = _accounts.Where(account => account.Id != fromId).ToList();
+        }
+        else
+        {
+            _toAccounts = _accounts.ToList();
+        }
+        _model.ToAccountId = Guid.Empty;
+    }
+
     }
 
 

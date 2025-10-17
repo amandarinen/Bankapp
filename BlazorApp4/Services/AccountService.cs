@@ -62,11 +62,22 @@ namespace BlazorApp4.Services
 
             var existing = _accounts.FirstOrDefault(account => account.Id == updatedAccount.Id);
             if (existing != null)
-            {
+           {
                 _accounts.Remove(existing);
                 _accounts.Add(updatedAccount);
                 await SaveAsync();
             }
+        }
+
+        public async Task Transfer(Guid fromAccountId,  Guid toAccountId, decimal amount)
+        {
+            var fromAccount = _accounts.OfType<BankAccount>().FirstOrDefault(x => x.Id == fromAccountId)
+                ?? throw new KeyNotFoundException($"Account with ID {fromAccountId} not found.");
+
+            var toAccount = _accounts.OfType<BankAccount>().FirstOrDefault(x => x.Id == toAccountId)
+                ?? throw new KeyNotFoundException($"Account with ID {fromAccountId} not found.");
+
+            fromAccount.TransferTo(toAccount, amount);
         }
 
     }

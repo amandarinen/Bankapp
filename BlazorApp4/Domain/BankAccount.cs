@@ -41,6 +41,34 @@ namespace BlazorApp4.Domain
             LastUpdated = lastUpdated;
         }
 
+        public void TransferTo(BankAccount toAccount, decimal amount)
+        {
+            // från vilket konto
+            Balance -= amount;
+            LastUpdated = DateTime.Now;
+            _transaction.Add(new Transaction
+            {
+                transactionType = TransactionType.TransferOut,
+                Amount = amount,
+                BalanceAfterTransaction = Balance,
+                FromAccountId = Id,
+                ToAccountId = toAccount.Id,
+            });
+
+            // till vilket konto
+            toAccount.Balance += amount;
+            toAccount.LastUpdated = DateTime.Now;
+            toAccount._transaction.Add(new Transaction
+            {
+                transactionType = TransactionType.TransferIn,
+                Amount = amount,
+                BalanceAfterTransaction = Balance,
+                FromAccountId = Id,
+                ToAccountId = toAccount.Id,
+
+            });
+        }
+
         public void Deposit(decimal amount)
         {
             if (amount < 0) throw new ArgumentException("Beloppet måste vara större än 0!");
