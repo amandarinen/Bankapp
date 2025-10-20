@@ -1,54 +1,64 @@
 ﻿@page "/CreateAccount"
+@using BlazorApp4.Services
 @inject IAccountService AccountService;
 
-<h3>Create Account</h3>
+
+<h3 class="mb-3">Create Account</h3>
 <EditForm Model="_model" OnValidSubmit="CreateAccountAsync">
     <DataAnnotationsValidator />
-    <ValidationSummary />
-    <div>
+    <ValidationSummary class="text-danger mb-3" />
+
+    <div class="mb-3">
         <label>Account Name</label>
-        <InputText @bind-Value="_model.Name" />
+        <InputText @bind-Value="_model.Name" class="form-control" />
     </div>
 
-    <div>
-        <label>Account Type</label>
-        <InputSelect @bind-Value="_model.AccountType">
+    <div class="mb-3">
+        <label class="form-label">Account Type</label>
+        <InputSelect @bind-Value="_model.AccountType" class="form-select">
             <option value="@AccountType.Deposit">Deposit Account</option>
             <option value="@AccountType.Savings">Savings Account</option>
         </InputSelect>
     </div>
 
-    <div>
-        <label>Currency</label>
-        <InputSelect @bind-Value="_model.Currency">
+    <div class="mb-3">
+        <label class="form-label">Currency</label>
+        <InputSelect @bind-Value="_model.Currency" class="form-select">
             <option value="@CurrencyType.SEK">SEK</option>
             <option value="@CurrencyType.Euro">Euro</option>
         </InputSelect>
     </div>
 
-    <div>
-        <label>Balance</label>
-        <InputNumber @bind-Value="_model.InitialBalance"></InputNumber>
+    <div class="mb-3">
+        <label class="form-label">Balance</label>
+        <InputNumber @bind-Value="_model.InitialBalance" class="form-control" min="0.01" step="0.01"></InputNumber>
         
     </div>
 
-    <button type="submit">Create</button>
+    <button type="submit" class="btn btn-primary" >Create</button>
     </EditForm>
 
+    <div class="mb-3">
 
-<h4>Alla konton</h4>
+    </div>
+
+
+<h3 class="mb-3">Alla konton</h3>
 @if(_accounts.Count == 0)
 {
     <p>Det finns inga konton ännu, registrera ditt första ovan!</p>
 }
 else
 {
-    <ul>
+    <ul class="list-group">
         @foreach(var account in _accounts)
         {
-            <li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
                 <strong>@account.Name</strong> - @account.AccountType - @account.Balance - @account.Currency
                 <small>(uppdaterad @account.LastUpdated.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss"))</small>
+                </div>
+                <button class="btn btn-danger btn-sm" @onclick="() => DeleteAccountAsync(account.Id)">Delete </button>
             </li>
         }
     </ul>
@@ -56,27 +66,35 @@ else
 
 
 @code {
+
     private CreateAccountModel _model = new();
     private List<IBankAccount> _accounts = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        _accounts = AccountService.GetAccounts().ToList();
-        base.OnInitialized();
+
+        {
+            _accounts = await AccountService.GetAccounts();
+
+            //await base.OnInitializedAsync();
+        }
+
     }
-    private Task CreateAccountAsync()
+
+
+    private async Task CreateAccountAsync()
     {
         try
         {
             Console.WriteLine(_model.Name);
 
-            AccountService.CreateAccount(
+            await AccountService.CreateAccount(
                 _model.Name,
                 _model.AccountType,
                 _model.Currency,
                 _model.InitialBalance);
 
-            _accounts = AccountService.GetAccounts().ToList();
+            _accounts = await AccountService.GetAccounts();
             _model.Clear();
         }
 
@@ -85,11 +103,32 @@ else
             Console.WriteLine(exception);
             throw;
 
-        }
-
-        return Task.CompletedTask;
+        } 
     }
 
+    private async Task DeleteAccountAsync(Guid Id)
+    {
+        bool confirm = await JS.InvokeAsync<bool>("confirm", $"Vill du verkligen ta bort kontot?");
+        if (!confirm)
+            return;
+
+        try
+        {
+            await AccountService.DeleteAccount(Id);
+            _accounts = await AccountService.GetAccounts(); // uppdaterar listan
+            StateHasChanged(); // uppdaterar UI
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fel vid borttagning av konto: {ex.Message}");
+        }
+    }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// 
     private class CreateAccountModel
     {
         public string? Name { get; set; }
@@ -106,5 +145,6 @@ else
         }
     }
 
-   
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
 }
