@@ -18,8 +18,12 @@ namespace BlazorApp4.Domain
 
         public DateTime LastUpdated { get; private set; }
 
-        public readonly List<Transaction> _transaction = new List<Transaction>();
-        
+
+        public readonly List<Transaction> _transaction = new();
+
+        public IReadOnlyList<Transaction> Transactions => _transaction;
+
+
 
         public BankAccount(string name, AccountType accountType, CurrencyType currency, decimal initialBalance)
         {
@@ -53,6 +57,7 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = Balance,
                 FromAccountId = Id,
                 ToAccountId = toAccount.Id,
+                TimeStamp = DateTime.Now
             });
 
             // till vilket konto
@@ -65,7 +70,7 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = Balance,
                 FromAccountId = Id,
                 ToAccountId = toAccount.Id,
-
+                TimeStamp = DateTime.Now
             });
         }
 

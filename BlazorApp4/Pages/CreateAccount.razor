@@ -43,7 +43,7 @@
     </div>
 
 
-<h3 class="mb-3">Alla konton</h3>
+<h3 class="mb-3">All accounts</h3>
 @if(_accounts.Count == 0)
 {
     <p>Det finns inga konton ännu, registrera ditt första ovan!</p>
@@ -68,17 +68,12 @@ else
 @code {
 
     private CreateAccountModel _model = new();
-    private List<IBankAccount> _accounts = new();
+    private List<BankAccount> _accounts = new();
 
-    protected override async Task OnInitializedAsync()
+
+    protected override void OnInitialized()
     {
-
-        {
-            _accounts = await AccountService.GetAccounts();
-
-            //await base.OnInitializedAsync();
-        }
-
+        _accounts = AccountService.GetAccounts();
     }
 
 
@@ -94,7 +89,7 @@ else
                 _model.Currency,
                 _model.InitialBalance);
 
-            _accounts = await AccountService.GetAccounts();
+            _accounts = AccountService.GetAccounts();
             _model.Clear();
         }
 
@@ -115,7 +110,7 @@ else
         try
         {
             await AccountService.DeleteAccount(Id);
-            _accounts = await AccountService.GetAccounts(); // uppdaterar listan
+            _accounts = AccountService.GetAccounts(); // uppdaterar listan
             StateHasChanged(); // uppdaterar UI
         }
         catch (Exception ex)

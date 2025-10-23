@@ -1,6 +1,4 @@
 ﻿@page "/NewTransaction"
-@using BlazorApp4.Domain
-@using BlazorApp4.Services
 @inject IAccountService AccountService
 
 
@@ -37,7 +35,7 @@ else
                         class="form-select"
                         disabled="@(_model.FromAccountId == Guid.Empty)">
                 <option value="@Guid.Empty">Choose Account</option>
-                @foreach (var account in _toAccounts)
+                @foreach (var account in _toAccounts.Where(x => x.Id != _model.FromAccountId))
                 {
                     <option value="@account.Id">@account.Name (@account.Balance @account.Currency)</option>
                 }
@@ -52,13 +50,17 @@ else
         <button type="submit" class="btn btn-primary ">Complete Transaction</button>
         </div>
     </EditForm>
-   
-    <div class="mb-3">
-    <h4>Konton</h4>
-    <ul>
+
+    <div>
+    <h3 class="mb-3">All accounts</h3>
+        <ul class="list-group">
         @foreach (var account in _accounts)
         {
-            <li>@account.Name - Balance: @account.Balance</li>
+           <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                     <strong>@account.Name</strong> - @account.AccountType - @account.Balance - @account.Currency
+                </div>
+           </li>
         }
     </ul>
     </div>
@@ -68,8 +70,8 @@ else
 @code 
 {
     private readonly TransferFormModel _model = new();
-    private List<IBankAccount> _accounts = new();
-    private List<IBankAccount> _toAccounts = new();
+    private List<BankAccount> _accounts = new();
+    private List<BankAccount> _toAccounts = new();
 
     private class TransferFormModel
     {
@@ -78,9 +80,10 @@ else
         public decimal Amount { get; set; }
     }
 
-    protected override async Task OnInitializedAsync()
+
+    protected override void OnInitialized()
     {
-        _accounts = await AccountService.GetAccounts();
+        _accounts = AccountService.GetAccounts();
 
         _toAccounts = _accounts;
     }
@@ -103,7 +106,7 @@ else
             await AccountService.Transfer(_model.FromAccountId, _model.ToAccountId, _model.Amount);
 
             //uppdatera lista
-            _accounts = await AccountService.GetAccounts();
+            _accounts = AccountService.GetAccounts();
 
             //visa bekräftelse
             var from = _accounts.First(x => x.Id == _model.FromAccountId);
