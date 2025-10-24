@@ -71,7 +71,7 @@ else
     private List<BankAccount> _accounts = new();
 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _accounts = AccountService.GetAccounts();
     }

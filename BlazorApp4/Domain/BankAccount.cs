@@ -49,7 +49,7 @@ namespace BlazorApp4.Domain
         {
             // från vilket konto
             Balance -= amount;
-            LastUpdated = DateTime.Now;
+            LastUpdated = DateTime.UtcNow;
             _transaction.Add(new Transaction
             {
                 transactionType = TransactionType.TransferOut,
@@ -57,12 +57,12 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = Balance,
                 FromAccountId = Id,
                 ToAccountId = toAccount.Id,
-                TimeStamp = DateTime.Now
+                TimeStamp = DateTime.UtcNow
             });
 
             // till vilket konto
             toAccount.Balance += amount;
-            toAccount.LastUpdated = DateTime.Now;
+            toAccount.LastUpdated = DateTime.UtcNow;
             toAccount._transaction.Add(new Transaction
             {
                 transactionType = TransactionType.TransferIn,
@@ -70,7 +70,7 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = Balance,
                 FromAccountId = Id,
                 ToAccountId = toAccount.Id,
-                TimeStamp = DateTime.Now
+                TimeStamp = DateTime.UtcNow
             });
         }
 

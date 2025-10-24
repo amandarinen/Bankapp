@@ -12,15 +12,21 @@ namespace BlazorApp4.Services
         public AccountService(IStorageService storageService)
         {
             _storageService = storageService;
-            Task.Run(async() => await IsInitialized());
+            
+        }
+
+        public async Task EnsureLoadedAsync()
+        {
+            if (isLoaded)
+            {
+                return;
+            }
+            await IsInitialized();
+            isLoaded = true;
         }
 
         private async Task IsInitialized()
         {
-            //if (isLoaded)
-            //{
-            //    return;
-            //}
             var fromStorage = await _storageService.GetItemAsync<List<BankAccount>>(StorageKey);
             if (fromStorage is { Count: > 0 })
                 _accounts.AddRange(fromStorage);
@@ -37,7 +43,7 @@ namespace BlazorApp4.Services
             
             var account = new BankAccount(name, accountType, currency, initialBalance);
             _accounts.Add(account);
-           // await SaveAsync();
+           await SaveAsync();
             return account;
         }
 
@@ -54,7 +60,7 @@ namespace BlazorApp4.Services
             if (accountToRemove is not null)
             {
                 _accounts.Remove(accountToRemove);
-               // await SaveAsync();
+               await SaveAsync();
                 
             }
         }
@@ -68,7 +74,7 @@ namespace BlazorApp4.Services
            {
                 _accounts.Remove(existing);
                 _accounts.Add(updatedAccount);
-                //await SaveAsync();
+                await SaveAsync();
             }
         }
 
@@ -84,7 +90,7 @@ namespace BlazorApp4.Services
 
             fromAccount.TransferTo(toAccount, amount);
 
-           // await SaveAsync();
+           await SaveAsync();
         }
 
     }

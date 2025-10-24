@@ -33,9 +33,13 @@ else
     </div>
 }
     
-    @if(!(_selectedAccount.Transactions?.Any()) ?? false)
+    @if(_selectedAccount == null)
     {
-        <p> Inga transaktioner än</p>
+    <p> välj ett konto </p>
+    }
+    else if(_selectedAccount.Transactions?.Any() ?? false)
+    {
+    <p>inga transaktioner än</p>
     }
     else
     {
@@ -73,7 +77,7 @@ else
 
 
 @code {
-    private List<BankAccount> _accounts;
+    private List<BankAccount> _accounts = new();
     private BankAccount? _selectedAccount;
     private Guid _selectedAccountId;
     private SortKey currentKey = SortKey.Date;
@@ -110,9 +114,9 @@ else
         }
     }
 
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        await AccountService.EnsureLoadedAsync();
         _accounts = AccountService.GetAccounts();
 
         // om det finns konton i vår lista, välj första för att visa i UI
@@ -122,6 +126,7 @@ else
             _selectedAccount = _accounts[0];
         }
     }
+   
 
 
 
