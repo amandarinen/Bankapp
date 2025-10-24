@@ -16,7 +16,7 @@ public interface IBankAccount
     decimal Balance { get; }
     DateTime LastUpdated { get; }
 
-    IReadOnlyList<Transaction> Transactions { get; }
+    List<Transaction> Transactions { get; }
 
     void Withdraw(decimal amount);
     void Deposit(decimal amount);

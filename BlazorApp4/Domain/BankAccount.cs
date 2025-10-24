@@ -21,7 +21,7 @@ namespace BlazorApp4.Domain
 
         public readonly List<Transaction> _transaction = new();
 
-        public IReadOnlyList<Transaction> Transactions => _transaction;
+        public List<Transaction> Transactions => _transaction;
 
 
 
@@ -35,7 +35,7 @@ namespace BlazorApp4.Domain
         }
 
         [JsonConstructor]
-        public BankAccount(Guid id, string name, AccountType accountType, CurrencyType currency, decimal balance, DateTime lastUpdated)
+        public BankAccount(Guid id, string name, AccountType accountType, CurrencyType currency, decimal balance, DateTime lastUpdated, List<Transaction>? transactions = null)
         {
             Id = id;
             Name = name;
@@ -43,13 +43,17 @@ namespace BlazorApp4.Domain
             Currency = currency;
             Balance = balance;
             LastUpdated = lastUpdated;
+
+            if (transactions != null)
+                _transaction = transactions;
         }
+
 
         public void TransferTo(BankAccount toAccount, decimal amount)
         {
             // från vilket konto
             Balance -= amount;
-            LastUpdated = DateTime.UtcNow;
+            LastUpdated = DateTime.Now;
             _transaction.Add(new Transaction
             {
                 transactionType = TransactionType.TransferOut,
@@ -57,12 +61,12 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = Balance,
                 FromAccountId = Id,
                 ToAccountId = toAccount.Id,
-                TimeStamp = DateTime.UtcNow
+                TimeStamp = DateTime.Now
             });
 
             // till vilket konto
             toAccount.Balance += amount;
-            toAccount.LastUpdated = DateTime.UtcNow;
+            toAccount.LastUpdated = DateTime.Now;
             toAccount._transaction.Add(new Transaction
             {
                 transactionType = TransactionType.TransferIn,
@@ -70,7 +74,7 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = Balance,
                 FromAccountId = Id,
                 ToAccountId = toAccount.Id,
-                TimeStamp = DateTime.UtcNow
+                TimeStamp = DateTime.Now
             });
         }
 
@@ -78,7 +82,7 @@ namespace BlazorApp4.Domain
         {
             if (amount < 0) throw new ArgumentException("Beloppet måste vara större än 0!");
             Balance += amount;
-            LastUpdated = DateTime.UtcNow;
+            LastUpdated = DateTime.Now;
             
             _transaction.Add(new Transaction
             {
@@ -94,7 +98,7 @@ namespace BlazorApp4.Domain
 
             if (Balance < amount) throw new InvalidOperationException("Inte tillräckligt saldo!");
             Balance -= amount;
-            LastUpdated = DateTime.UtcNow;
+            LastUpdated = DateTime.Now;
 
             _transaction.Add(new Transaction
             {

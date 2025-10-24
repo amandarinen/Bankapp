@@ -13,7 +13,7 @@ namespace BlazorApp4.Domain
     public class Transaction
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public DateTime TimeStamp { get; set; } = DateTime.Now;
+        public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
         public TransactionType transactionType { get; set; }
         public decimal Amount { get; set; }
         public CurrencyType Currency { get; set; }

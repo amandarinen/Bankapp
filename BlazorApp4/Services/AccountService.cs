@@ -78,20 +78,32 @@ namespace BlazorApp4.Services
             }
         }
 
-        public async Task Transfer(Guid fromAccountId,  Guid toAccountId, decimal amount)
+        public async Task Transfer(Guid fromAccountId, Guid toAccountId, decimal amount)
+
         {
-           
 
-            var fromAccount = _accounts.OfType<BankAccount>().FirstOrDefault(x => x.Id == fromAccountId)
-                ?? throw new KeyNotFoundException($"Account with ID {fromAccountId} not found.");
+            var fromAccount = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == fromAccountId)
 
-            var toAccount = _accounts.OfType<BankAccount>().FirstOrDefault(x => x.Id == toAccountId)
-                ?? throw new KeyNotFoundException($"Account with ID {fromAccountId} not found.");
+            ?? throw new KeyNotFoundException($"Account with ID {fromAccountId} not found.");
+
+            var toAccount = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == toAccountId)
+
+            ?? throw new KeyNotFoundException($"Account with ID {toAccountId} not found.");
+
+            if (fromAccount.Balance < amount)
+
+                throw new InvalidOperationException("Otillräckliga medel på från-kontot.");
+
+            if (amount <= 0)
+
+                throw new ArgumentOutOfRangeException(nameof(amount), "Beloppet måste vara positivt.");
 
             fromAccount.TransferTo(toAccount, amount);
 
-           await SaveAsync();
+            await SaveAsync();
+
         }
+
 
     }
 }

@@ -1,7 +1,7 @@
 ﻿@page "/TransactionHistory"
 @inject IAccountService AccountService
 
-<h3 class="mb-3">TransactionHistory</h3>
+<h3 class="mb-3">Transaction History</h3>
 
 @if (_accounts.Count == 0)
 {
@@ -10,37 +10,38 @@
 else
 {
     <div class="mb-2">
-        <label>Välj konto</label>
+        <label>Choose Account</label>
         <InputSelect TValue="Guid"
                     class="form-select"
                     id="accountSelect"
                     @bind-Value="SelectedAccountId">
             @foreach (var account in _accounts)
             {
-                <option value="@account.Id">@account.Name - Saldo: @account.Balance</option>
+                <option value="@account.Id">@account.Name - Balance: @account.Balance</option>
             }
 
         </InputSelect>
     </div>
 
-    <div class="=mb-2">
+    <div class="mb-2">
         <button class="btn btn-sm" @onclick="() => SetSort(SortKey.Date)">
-            Sortera: datum @(currentKey == SortKey.Date ? (descending ? "upp" : "ner") : "")
+            ↓↑ Date @(currentKey == SortKey.Date ? (descending ? "↓" : "↑") : "")
         </button>
         <button class="btn btn-sm" @onclick="() => SetSort(SortKey.Amount)">
-            Sortera: belopp @(currentKey == SortKey.Amount ? (descending ? "upp" : "ner") : "")
+            ↓↑ Amount @(currentKey == SortKey.Amount ? (descending ? "↓" : "↑") : "")
         </button>
     </div>
+
 }
     
     @if(_selectedAccount == null)
     {
-    <p> välj ett konto </p>
+    <p> Choose Account </p>
     }
-    else if(_selectedAccount.Transactions?.Any() ?? false)
+    @* else if(_selectedAccount.Transactions?.Any() ?? false)
     {
     <p>inga transaktioner än</p>
-    }
+    } *@
     else
     {
             <table class="table table-sm">
@@ -54,10 +55,11 @@ else
                     </tr>
                 </thead>
                 <tbody>
+
                     @foreach(var transaction in sortedTransaction())
                     {
                         <tr>
-                        <td>@transaction.TimeStamp</td>
+                        <td>@transaction.TimeStamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
                         <td>@transaction.Amount</td>
                         <td>@transaction.transactionType</td>
                         <td>@transaction.BalanceAfterTransaction</td>
@@ -111,6 +113,7 @@ else
                 return;
             _selectedAccountId = value;
             _selectedAccount = _accounts.FirstOrDefault(account => account.Id == value);
+            StateHasChanged();
         }
     }
 
@@ -125,10 +128,9 @@ else
             _selectedAccountId = _accounts[0].Id;
             _selectedAccount = _accounts[0];
         }
+        
+        StateHasChanged();
     }
-   
-
-
 
     private IEnumerable<Transaction> sortedTransaction()
     {
@@ -148,5 +150,7 @@ else
         };
         return sortedList;
     }
+
+    
 
 }
