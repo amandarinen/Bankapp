@@ -81,8 +81,9 @@ else
     }
 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        await AccountService.EnsureLoadedAsync();
         _accounts = AccountService.GetAccounts();
 
         _toAccounts = _accounts;

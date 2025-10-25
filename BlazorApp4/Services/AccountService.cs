@@ -33,14 +33,10 @@ namespace BlazorApp4.Services
             isLoaded = true;
         }
 
-        //private Task SaveAsync() => _storageService.SetItemAsync(StorageKey, _accounts);
         private Task SaveAsync() => _storageService.SetItemAsync(StorageKey, _accounts.OfType<BankAccount>().ToList());
-
-
 
         public async Task<BankAccount> CreateAccount(string name, AccountType accountType, CurrencyType currency, decimal initialBalance)
         {
-            
             var account = new BankAccount(name, accountType, currency, initialBalance);
             _accounts.Add(account);
            await SaveAsync();
@@ -49,7 +45,6 @@ namespace BlazorApp4.Services
 
         public List<BankAccount> GetAccounts()
         {
-            
             return _accounts.Cast<BankAccount>().ToList();
         }
 
@@ -60,15 +55,12 @@ namespace BlazorApp4.Services
             if (accountToRemove is not null)
             {
                 _accounts.Remove(accountToRemove);
-               await SaveAsync();
-                
+               await SaveAsync();  
             }
         }
 
         public async Task UpdateAccount(BankAccount updatedAccount)
         {
-            
-
             var existing = _accounts.FirstOrDefault(account => account.Id == updatedAccount.Id);
             if (existing != null)
            {
@@ -79,29 +71,19 @@ namespace BlazorApp4.Services
         }
 
         public async Task Transfer(Guid fromAccountId, Guid toAccountId, decimal amount)
-
         {
-
             var fromAccount = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == fromAccountId)
-
             ?? throw new KeyNotFoundException($"Account with ID {fromAccountId} not found.");
-
             var toAccount = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == toAccountId)
-
             ?? throw new KeyNotFoundException($"Account with ID {toAccountId} not found.");
 
             if (fromAccount.Balance < amount)
-
                 throw new InvalidOperationException("Otillräckliga medel på från-kontot.");
-
             if (amount <= 0)
-
                 throw new ArgumentOutOfRangeException(nameof(amount), "Beloppet måste vara positivt.");
-
             fromAccount.TransferTo(toAccount, amount);
 
             await SaveAsync();
-
         }
 
 
