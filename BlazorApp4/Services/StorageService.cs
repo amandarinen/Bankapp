@@ -13,6 +13,7 @@ namespace BlazorApp4.Services
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Converters = { new JsonStringEnumConverter() }
         };
+
         public StorageService(IJSRuntime jsRuntime) => _jsRuntime = jsRuntime;
 
         public async Task<T> GetItemAsync<T>(string key)
@@ -31,5 +32,18 @@ namespace BlazorApp4.Services
             await _jsRuntime.InvokeVoidAsync("localStorage.setItem", key, json);
 
         }
+
+        public async Task SetItemAsStringAsync(string key, string value)
+        {
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", key, value);
+        }
+
+        public async Task<string> GetItemAsStringAsync(string key)
+        {
+            var value = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", key);
+            return value ?? string.Empty;
+        }
+
+
     }
 }

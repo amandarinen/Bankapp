@@ -1,26 +1,26 @@
 ﻿
-
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace BlazorApp4.Domain
+    
 {
+    /// <summary>
+    /// Bankkonto domain, hanterar ytansaktioner, överföringar och sparar properties kopplade till bankkontot
+    /// </summary>
     public class BankAccount : IBankAccount
     {
+        // Constants
         public Guid Id { get; private set; } = Guid.NewGuid();
-
         public string Name { get; private set; }
-
         public AccountType AccountType { get; private set; }
-
         public CurrencyType Currency { get; private set; }
-
         public decimal Balance { get; private set; }
-
         public DateTime LastUpdated { get; private set; }
+        public readonly List<Transaction> _transaction = new();
+        public List<Transaction> Transactions => _transaction;
 
-        public readonly List<Transaction> _transaction = new List<Transaction>();
-        
-
+        // Constructor
         public BankAccount(string name, AccountType accountType, CurrencyType currency, decimal initialBalance)
         {
             Name = name;
@@ -31,7 +31,7 @@ namespace BlazorApp4.Domain
         }
 
         [JsonConstructor]
-        public BankAccount(Guid id, string name, AccountType accountType, CurrencyType currency, decimal balance, DateTime lastUpdated)
+        public BankAccount(Guid id, string name, AccountType accountType, CurrencyType currency, decimal balance, DateTime lastUpdated, List<Transaction>? transactions = null)
         {
             Id = id;
             Name = name;
@@ -39,8 +39,16 @@ namespace BlazorApp4.Domain
             Currency = currency;
             Balance = balance;
             LastUpdated = lastUpdated;
+
+            if (transactions != null)
+                _transaction = transactions;
         }
 
+        /// <summary>
+        /// Transfers a specific amount from one account to another
+        /// </summary>
+        /// <param name="toAccount">which account to transfer to</param>
+        /// <param name="amount"></param>
         public void TransferTo(BankAccount toAccount, decimal amount)
         {
             // från vilket konto
@@ -53,6 +61,7 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = Balance,
                 FromAccountId = Id,
                 ToAccountId = toAccount.Id,
+                TimeStamp = DateTime.Now
             });
 
             // till vilket konto
@@ -65,15 +74,20 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = Balance,
                 FromAccountId = Id,
                 ToAccountId = toAccount.Id,
-
+                TimeStamp = DateTime.Now
             });
         }
 
+        /// <summary>
+        /// Deposit a specific amount from the bank account balance
+        /// </summary>
+        /// <param name="amount"></param>
+        /// <exception cref="ArgumentException"></exception>
         public void Deposit(decimal amount)
         {
             if (amount < 0) throw new ArgumentException("Beloppet måste vara större än 0!");
             Balance += amount;
-            LastUpdated = DateTime.UtcNow;
+            LastUpdated = DateTime.Now;
             
             _transaction.Add(new Transaction
             {
@@ -83,13 +97,19 @@ namespace BlazorApp4.Domain
             });
         }
 
+        /// <summary>
+        /// Withdraw a specific amount from the bank account balance
+        /// </summary>
+        /// <param name="amount">The specified amount</param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
         public void Withdraw(decimal amount)
         {
-            if (amount < 0) throw new ArgumentException("Beloppet måste vara större än 0!");
+            if (amount < 0) throw new ValidationException("Beloppet måste vara större än 0!");
 
             if (Balance < amount) throw new InvalidOperationException("Inte tillräckligt saldo!");
             Balance -= amount;
-            LastUpdated = DateTime.UtcNow;
+            LastUpdated = DateTime.Now;
 
             _transaction.Add(new Transaction
             {
@@ -100,4 +120,3 @@ namespace BlazorApp4.Domain
         }
     }
 }
-

@@ -25,7 +25,6 @@
         <label class="form-label">Currency</label>
         <InputSelect @bind-Value="_model.Currency" class="form-select">
             <option value="@CurrencyType.SEK">SEK</option>
-            <option value="@CurrencyType.Euro">Euro</option>
         </InputSelect>
     </div>
 
@@ -43,7 +42,7 @@
     </div>
 
 
-<h3 class="mb-3">Alla konton</h3>
+<h3 class="mb-3">All accounts</h3>
 @if(_accounts.Count == 0)
 {
     <p>Det finns inga konton ännu, registrera ditt första ovan!</p>
@@ -68,17 +67,13 @@ else
 @code {
 
     private CreateAccountModel _model = new();
-    private List<IBankAccount> _accounts = new();
+    private List<BankAccount> _accounts = new();
+
 
     protected override async Task OnInitializedAsync()
     {
-
-        {
-            _accounts = await AccountService.GetAccounts();
-
-            //await base.OnInitializedAsync();
-        }
-
+        await AccountService.EnsureLoadedAsync();
+        _accounts = AccountService.GetAccounts();
     }
 
 
@@ -94,7 +89,7 @@ else
                 _model.Currency,
                 _model.InitialBalance);
 
-            _accounts = await AccountService.GetAccounts();
+            _accounts = AccountService.GetAccounts();
             _model.Clear();
         }
 
@@ -108,19 +103,19 @@ else
 
     private async Task DeleteAccountAsync(Guid Id)
     {
-        bool confirm = await JS.InvokeAsync<bool>("confirm", $"Vill du verkligen ta bort kontot?");
+        bool confirm = await JS.InvokeAsync<bool>("confirm", $"Do you want to delete this account??");
         if (!confirm)
             return;
 
         try
         {
             await AccountService.DeleteAccount(Id);
-            _accounts = await AccountService.GetAccounts(); // uppdaterar listan
+            _accounts = AccountService.GetAccounts(); // uppdaterar listan
             StateHasChanged(); // uppdaterar UI
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fel vid borttagning av konto: {ex.Message}");
+            Console.WriteLine($"Error when deleting account: {ex.Message}");
         }
     }
 
