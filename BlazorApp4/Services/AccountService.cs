@@ -78,15 +78,50 @@ namespace BlazorApp4.Services
             ?? throw new KeyNotFoundException($"Account with ID {toAccountId} not found.");
 
             if (fromAccount.Balance < amount)
+            {
                 throw new InvalidOperationException("Otillräckliga medel på från-kontot.");
+            }
             if (amount <= 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(amount), "Beloppet måste vara positivt.");
-            fromAccount.TransferTo(toAccount, amount);
+            }
 
+            fromAccount.TransferTo(toAccount, amount);
             await SaveAsync();
         }
 
+        public async Task DepositAsync(Guid accountId, decimal amount)
+        {
+            var account = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == accountId)
+                ?? throw new KeyNotFoundException($"Konto med ID {accountId} hittades inte.");
 
+            if (amount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Beloppet måste vara större än 0.");
+            }
+
+            account.Deposit(amount);
+            await SaveAsync();
+        }
+
+        public async Task WithdrawAsync(Guid accountId, decimal amount)
+        {
+            var account = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == accountId)
+                ?? throw new KeyNotFoundException($"Konto med ID {accountId} hittades inte.");
+
+            if (amount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Beloppet måste vara större än 0.");
+            }
+
+            if (account.Balance < amount)
+            {
+                throw new InvalidOperationException("Otillräckligt saldo.");
+            }
+
+            account.Withdraw(amount);
+            await SaveAsync();
+        }
     }
 }
 

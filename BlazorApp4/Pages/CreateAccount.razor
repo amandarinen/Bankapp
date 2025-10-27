@@ -25,7 +25,6 @@
         <label class="form-label">Currency</label>
         <InputSelect @bind-Value="_model.Currency" class="form-select">
             <option value="@CurrencyType.SEK">SEK</option>
-            <option value="@CurrencyType.Euro">Euro</option>
         </InputSelect>
     </div>
 
@@ -104,7 +103,7 @@ else
 
     private async Task DeleteAccountAsync(Guid Id)
     {
-        bool confirm = await JS.InvokeAsync<bool>("confirm", $"Vill du verkligen ta bort kontot?");
+        bool confirm = await JS.InvokeAsync<bool>("confirm", $"Do you want to delete this account??");
         if (!confirm)
             return;
 
@@ -116,7 +115,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fel vid borttagning av konto: {ex.Message}");
+            Console.WriteLine($"Error when deleting account: {ex.Message}");
         }
     }
 

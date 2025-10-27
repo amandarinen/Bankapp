@@ -20,19 +20,5 @@ namespace BlazorApp4.Domain
         public decimal BalanceAfterTransaction { get; set; }
         public Guid? FromAccountId { get; set; }
         public Guid? ToAccountId { get; set; }
-
-
-        //public Transaction()
-        //{
-        //    TimeStamp = DateTime.UtcNow;
-        //}
-
-        //public Transaction(Guid fromAccountId, Guid toAccountId, decimal amount)
-        //{
-        //    FromAccountId = fromAccountId;
-        //    ToAccountId = toAccountId;
-        //    Amount = amount;
-        //    TimeStamp = DateTime.UtcNow;
-        //}
     }
 }

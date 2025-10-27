@@ -9,6 +9,7 @@
 }
 else
 {
+    {/*Välj konto*/}
     <div class="mb-2">
         <label>Choose Account</label>
         <InputSelect TValue="Guid"
@@ -74,11 +75,9 @@ else
                 </tbody>
             </table>
         }
-    
-
-
-
+<!-- Code for the design -->
 @code {
+    // Instance variables
     private List<BankAccount> _accounts = new();
     private BankAccount? _selectedAccount;
     private Guid _selectedAccountId;

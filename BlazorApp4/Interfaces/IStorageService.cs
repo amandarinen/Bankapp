@@ -6,7 +6,6 @@
         Task SetItemAsync<T>(string key, T value);
         //hämta
         Task<T> GetItemAsync<T>(string key);
-
         Task<string> GetItemAsStringAsync(string key);
         Task SetItemAsStringAsync(string key, string value);
     }

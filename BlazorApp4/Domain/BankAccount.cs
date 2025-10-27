@@ -1,30 +1,26 @@
 ﻿
-
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace BlazorApp4.Domain
+    
 {
+    /// <summary>
+    /// Bankkonto domain, hanterar ytansaktioner, överföringar och sparar properties kopplade till bankkontot
+    /// </summary>
     public class BankAccount : IBankAccount
     {
+        // Constants
         public Guid Id { get; private set; } = Guid.NewGuid();
-
         public string Name { get; private set; }
-
         public AccountType AccountType { get; private set; }
-
         public CurrencyType Currency { get; private set; }
-
         public decimal Balance { get; private set; }
-
         public DateTime LastUpdated { get; private set; }
-
-
         public readonly List<Transaction> _transaction = new();
-
         public List<Transaction> Transactions => _transaction;
 
-
-
+        // Constructor
         public BankAccount(string name, AccountType accountType, CurrencyType currency, decimal initialBalance)
         {
             Name = name;
@@ -48,7 +44,11 @@ namespace BlazorApp4.Domain
                 _transaction = transactions;
         }
 
-
+        /// <summary>
+        /// Transfers a specific amount from one account to another
+        /// </summary>
+        /// <param name="toAccount">which account to transfer to</param>
+        /// <param name="amount"></param>
         public void TransferTo(BankAccount toAccount, decimal amount)
         {
             // från vilket konto
@@ -78,6 +78,11 @@ namespace BlazorApp4.Domain
             });
         }
 
+        /// <summary>
+        /// Deposit a specific amount from the bank account balance
+        /// </summary>
+        /// <param name="amount"></param>
+        /// <exception cref="ArgumentException"></exception>
         public void Deposit(decimal amount)
         {
             if (amount < 0) throw new ArgumentException("Beloppet måste vara större än 0!");
@@ -92,9 +97,15 @@ namespace BlazorApp4.Domain
             });
         }
 
+        /// <summary>
+        /// Withdraw a specific amount from the bank account balance
+        /// </summary>
+        /// <param name="amount">The specified amount</param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
         public void Withdraw(decimal amount)
         {
-            if (amount < 0) throw new ArgumentException("Beloppet måste vara större än 0!");
+            if (amount < 0) throw new ValidationException("Beloppet måste vara större än 0!");
 
             if (Balance < amount) throw new InvalidOperationException("Inte tillräckligt saldo!");
             Balance -= amount;
@@ -109,4 +120,3 @@ namespace BlazorApp4.Domain
         }
     }
 }
-
