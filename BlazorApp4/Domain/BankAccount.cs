@@ -6,7 +6,7 @@ namespace BlazorApp4.Domain
     
 {
     /// <summary>
-    /// Bankkonto domain, hanterar ytansaktioner, överföringar och sparar properties kopplade till bankkontot
+    /// Bankkonto domain, hanterar transaktioner, överföringar och sparar properties kopplade till bankkontot
     /// </summary>
     public class BankAccount : IBankAccount
     {
@@ -17,6 +17,7 @@ namespace BlazorApp4.Domain
         public CurrencyType Currency { get; private set; }
         public decimal Balance { get; private set; }
         public DateTime LastUpdated { get; private set; }
+
         public readonly List<Transaction> _transaction = new();
         public List<Transaction> Transactions => _transaction;
 
@@ -30,6 +31,16 @@ namespace BlazorApp4.Domain
             LastUpdated = DateTime.Now;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <param name="accountType"></param>
+        /// <param name="currency"></param>
+        /// <param name="balance"></param>
+        /// <param name="lastUpdated"></param>
+        /// <param name="transactions"></param>
         [JsonConstructor]
         public BankAccount(Guid id, string name, AccountType accountType, CurrencyType currency, decimal balance, DateTime lastUpdated, List<Transaction>? transactions = null)
         {

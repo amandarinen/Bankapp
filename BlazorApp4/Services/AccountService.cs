@@ -72,9 +72,9 @@ namespace BlazorApp4.Services
 
         public async Task Transfer(Guid fromAccountId, Guid toAccountId, decimal amount)
         {
-            var fromAccount = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == fromAccountId)
+            var fromAccount = _accounts.FirstOrDefault(a => a.Id == fromAccountId)
             ?? throw new KeyNotFoundException($"Account with ID {fromAccountId} not found.");
-            var toAccount = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == toAccountId)
+            var toAccount = _accounts.FirstOrDefault(a => a.Id == toAccountId)
             ?? throw new KeyNotFoundException($"Account with ID {toAccountId} not found.");
 
             if (fromAccount.Balance < amount)
@@ -92,7 +92,7 @@ namespace BlazorApp4.Services
 
         public async Task DepositAsync(Guid accountId, decimal amount)
         {
-            var account = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == accountId)
+            var account = _accounts.FirstOrDefault(a => a.Id == accountId)
                 ?? throw new KeyNotFoundException($"Konto med ID {accountId} hittades inte.");
 
             if (amount <= 0)
@@ -106,7 +106,7 @@ namespace BlazorApp4.Services
 
         public async Task WithdrawAsync(Guid accountId, decimal amount)
         {
-            var account = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == accountId)
+            var account = _accounts.FirstOrDefault(a => a.Id == accountId)
                 ?? throw new KeyNotFoundException($"Konto med ID {accountId} hittades inte.");
 
             if (amount <= 0)
