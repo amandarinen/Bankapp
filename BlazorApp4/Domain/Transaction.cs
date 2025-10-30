@@ -7,7 +7,8 @@ namespace BlazorApp4.Domain
         Deposit,
         Withdrawal,
         TransferIn,
-        TransferOut
+        TransferOut,
+        Interest
     }
 
     public class Transaction

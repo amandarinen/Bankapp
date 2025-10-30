@@ -11,6 +11,6 @@ namespace BlazorApp4.Interfaces
         Task EnsureLoadedAsync();
         Task DepositAsync(Guid accountId, decimal amount);
         Task WithdrawAsync(Guid accountId, decimal amount);
-
+        Task ApplyInterestAsync();
     }
 }

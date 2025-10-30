@@ -38,10 +38,17 @@ namespace BlazorApp4.Services
         public async Task<BankAccount> CreateAccount(string name, AccountType accountType, CurrencyType currency, decimal initialBalance)
         {
             var account = new BankAccount(name, accountType, currency, initialBalance);
+
+            if (accountType == AccountType.Savings)
+            {
+                account.InterestRate = 0.02m; // 2 % ränta för sparkonton
+            }
+
             _accounts.Add(account);
-           await SaveAsync();
+            await SaveAsync();
             return account;
         }
+
 
         public List<BankAccount> GetAccounts()
         {
@@ -120,6 +127,19 @@ namespace BlazorApp4.Services
             }
 
             account.Withdraw(amount);
+            await SaveAsync();
+        }
+        public async Task ApplyInterestAsync()
+        {
+            foreach (var account in _accounts.Where(a =>
+                     a.AccountType == AccountType.Savings &&
+                     a.InterestRate.HasValue &&
+                     a.InterestRate > 0))
+            {
+                var interest = account.Balance * account.InterestRate.Value;
+                account.ApplyInterest();
+            }
+
             await SaveAsync();
         }
     }

@@ -17,6 +17,7 @@ namespace BlazorApp4.Domain
         public CurrencyType Currency { get; private set; }
         public decimal Balance { get; private set; }
         public DateTime LastUpdated { get; private set; }
+        public decimal? InterestRate { get; set; } // Null for non-savings accounts
 
         public readonly List<Transaction> _transaction = new();
         public List<Transaction> Transactions => _transaction;
@@ -42,7 +43,7 @@ namespace BlazorApp4.Domain
         /// <param name="lastUpdated"></param>
         /// <param name="transactions"></param>
         [JsonConstructor]
-        public BankAccount(Guid id, string name, AccountType accountType, CurrencyType currency, decimal balance, DateTime lastUpdated, List<Transaction>? transactions = null)
+        public BankAccount(Guid id, string name, AccountType accountType, CurrencyType currency, decimal balance, DateTime lastUpdated, List<Transaction>? transactions = null, decimal? interestRate = null)
         {
             Id = id;
             Name = name;
@@ -50,6 +51,7 @@ namespace BlazorApp4.Domain
             Currency = currency;
             Balance = balance;
             LastUpdated = lastUpdated;
+            InterestRate = interestRate;
 
             if (transactions != null)
                 _transaction = transactions;
@@ -82,7 +84,7 @@ namespace BlazorApp4.Domain
             {
                 transactionType = TransactionType.TransferIn,
                 Amount = amount,
-                BalanceAfterTransaction = Balance,
+                BalanceAfterTransaction = toAccount.Balance,
                 FromAccountId = Id,
                 ToAccountId = toAccount.Id,
                 TimeStamp = DateTime.Now
@@ -96,7 +98,11 @@ namespace BlazorApp4.Domain
         /// <exception cref="ArgumentException"></exception>
         public void Deposit(decimal amount)
         {
-            if (amount < 0) throw new ArgumentException("Beloppet måste vara större än 0!");
+            if (amount < 0)
+            {
+                throw new ArgumentException("Beloppet måste vara större än 0!");
+            }
+
             Balance += amount;
             LastUpdated = DateTime.Now;
             
@@ -116,9 +122,16 @@ namespace BlazorApp4.Domain
         /// <exception cref="InvalidOperationException"></exception>
         public void Withdraw(decimal amount)
         {
-            if (amount < 0) throw new ValidationException("Beloppet måste vara större än 0!");
+            if (amount < 0)
+            {
+                throw new ValidationException("Beloppet måste vara större än 0!");
+            }
 
-            if (Balance < amount) throw new InvalidOperationException("Inte tillräckligt saldo!");
+            if (Balance < amount)
+            {
+                throw new InvalidOperationException("Inte tillräckligt saldo!");
+            }
+
             Balance -= amount;
             LastUpdated = DateTime.Now;
 
@@ -129,5 +142,23 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = Balance
             });
         }
+
+        public void ApplyInterest()
+        {
+            if (AccountType == AccountType.Savings && InterestRate.HasValue && InterestRate > 0)
+            {
+                var interest = Balance * InterestRate.Value;
+                Balance += interest;
+                LastUpdated = DateTime.Now;
+
+                _transaction.Add(new Transaction
+                {
+                    transactionType = TransactionType.Interest,
+                    Amount = interest,
+                    BalanceAfterTransaction = Balance
+                });
+            }
+        }
+
     }
 }

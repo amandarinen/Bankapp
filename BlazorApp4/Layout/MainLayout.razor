@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject IAccountService AccountService
+@inject LockService LockService
 
 <div class="page">
     <div class="sidebar">
@@ -17,6 +18,49 @@
     </main>
 </div>
 
-@code {
+@if (LockService.IsLocked)
+{
+    <div class="lock-overlay">
+        <div class="lock-screen text-center">
+            <h3>Ange PIN för att låsa upp</h3>
+            <input type="password" @bind="enteredPin" maxlength="4"
+                   class="form-control w-25 mx-auto text-center" />
+            <button class="btn btn-primary mt-3" @onclick="Unlock">Lås upp</button>
 
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <p class="text-danger mt-2">@message</p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private string enteredPin = "";
+    private string? message;
+
+    protected override void OnInitialized()
+    {
+        LockService.OnLockStateChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        LockService.OnLockStateChanged -= StateHasChanged;
+    }
+
+    private void Unlock()
+    {
+        message = null;
+        LockService.Unlock(enteredPin);
+        if (LockService.IsLocked)
+        {
+            message = "Fel PIN!";
+            enteredPin = "";
+        }
+        else
+        {
+            enteredPin = "";
+        }
+    }
 }

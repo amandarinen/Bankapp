@@ -18,7 +18,7 @@ else
                     @bind-Value="SelectedAccountId">
             @foreach (var account in _accounts)
             {
-                <option value="@account.Id">@account.Name - Balance: @account.Balance</option>
+                <option value="@account.Id">@account.Name - Balance: @account.Balance.ToString("N2")</option>
             }
 
         </InputSelect>
@@ -68,36 +68,35 @@ else
     }
     else
     {
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Transaction Type</th>
-                        <th>Amount after transaction</th>
-                        <th>from -> to</th>
-                    </tr>
-                </thead>
-                <tbody>
-
-                    @foreach(var transaction in sortedTransaction())
-                    {
-                        <tr>
-                        <td>@transaction.TimeStamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td>
-                        <td>@transaction.Amount</td>
-                        <td>@transaction.transactionType</td>
-                        <td>@transaction.BalanceAfterTransaction</td>
-                        <td>
-                            @if(transaction.FromAccountId.HasValue || transaction.ToAccountId.HasValue)
-                            {
-                                <span>@(transaction.FromAccountId.ToString()[..6]) -> @(transaction.ToAccountId.ToString()[..6])</span>
-                            }
-                        </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
+    <table class="table table-sm table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Transaction Type</th>
+                <th>Amount after transaction</th>
+                <th>from -> to</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var transaction in sortedTransaction())
+                {
+                <tr>
+                <td>@transaction.TimeStamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td>
+                <td>@transaction.Amount.ToString("N2")</td>
+                <td>@transaction.transactionType</td>
+                    <td>@transaction.BalanceAfterTransaction.ToString("N2")</td>
+                <td>
+                    @if(transaction.FromAccountId.HasValue || transaction.ToAccountId.HasValue)
+                        {
+                         <span>@(transaction.FromAccountId.ToString()[..6]) -> @(transaction.ToAccountId.ToString()[..6])</span>
+                        }
+                </td>
+                </tr>
+                 }
+        </tbody>
+    </table>
+    }
 
 <!-- Code -->
 @code {
