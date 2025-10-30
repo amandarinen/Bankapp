@@ -101,3 +101,35 @@ a, .btn-link {
 code {
     color: #c02d76;
 }
+
+.lock-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.lock-screen {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+a.logout-link.nav-link {
+    color: #fff !important;
+    text-decoration: none;
+    display: block;
+    padding: 0.5rem 1rem;
+}
+
+    a.logout-link.nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        text-decoration: none;
+    }

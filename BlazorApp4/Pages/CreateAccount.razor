@@ -34,13 +34,17 @@
         
     </div>
 
-    <button type="submit" class="btn btn-primary" >Create</button>
+    <button type="submit" class="btn btn-primary" >Create account</button>
     </EditForm>
 
     <div class="mb-3">
-
     </div>
 
+    <div class ="mb-4">
+    <button class="btn btn-primary mt-3" @onclick="ApplyInterestToAll">
+        Apply interest to all savings accounts
+    </button>
+    </div>
 
 <h3 class="mb-3">All accounts</h3>
 @if(_accounts.Count == 0)
@@ -49,18 +53,39 @@
 }
 else
 {
-    <ul class="list-group">
-        @foreach(var account in _accounts)
-        {
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-                <strong>@account.Name</strong> - @account.AccountType - @account.Balance - @account.Currency
-                <small>(uppdaterad @account.LastUpdated.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss"))</small>
-                </div>
-                <button class="btn btn-danger btn-sm" @onclick="() => DeleteAccountAsync(account.Id)">Delete </button>
-            </li>
-        }
-    </ul>
+    <div class="mt-4">
+        <table class="table table-sm table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Account Name</th>
+                    <th>Type</th>
+                    <th>Balance</th>
+                    <th>Currency</th>
+                    <th>Interest</th>
+                    <th>Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var account in _accounts)
+                {
+                    <tr>
+                        <td>@account.Name</td>
+                        <td>@account.AccountType</td>
+                        <td>@account.Balance.ToString("N2")</td>
+                        <td>@account.Currency</td>
+                        <td>@(account.InterestRate.HasValue ? (account.InterestRate.Value * 100).ToString("N2") + " %" : "-")</td>
+                        <td>@account.LastUpdated.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-danger"
+                                    @onclick="() => DeleteAccountAsync(account.Id)">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 
@@ -69,13 +94,11 @@ else
     private CreateAccountModel _model = new();
     private List<BankAccount> _accounts = new();
 
-
     protected override async Task OnInitializedAsync()
     {
         await AccountService.EnsureLoadedAsync();
         _accounts = AccountService.GetAccounts();
     }
-
 
     private async Task CreateAccountAsync()
     {
@@ -97,8 +120,7 @@ else
         {
             Console.WriteLine(exception);
             throw;
-
-        } 
+        }
     }
 
     private async Task DeleteAccountAsync(Guid Id)
@@ -119,7 +141,6 @@ else
         }
     }
 
-
     /// <summary>
     /// 
     /// </summary>
@@ -130,7 +151,7 @@ else
         public AccountType AccountType { get; set; }
         public CurrencyType Currency { get; set; }
         public decimal InitialBalance { get; set; } = 0;
-
+        
         public void Clear()
         {
             Name = string.Empty;
@@ -140,6 +161,12 @@ else
         }
     }
 
-    [Inject] private IJSRuntime JS { get; set; } = default!;
+    private async Task ApplyInterestToAll()
+    {
+        await AccountService.ApplyInterestAsync();
+        _accounts = AccountService.GetAccounts(); // Uppdaterar listan
+        StateHasChanged(); // Uppdaterar UI
+    }
 
+    [Inject] private IJSRuntime JS { get; set; } = default!;
 }

@@ -38,10 +38,17 @@ namespace BlazorApp4.Services
         public async Task<BankAccount> CreateAccount(string name, AccountType accountType, CurrencyType currency, decimal initialBalance)
         {
             var account = new BankAccount(name, accountType, currency, initialBalance);
+
+            if (accountType == AccountType.Savings)
+            {
+                account.InterestRate = 0.02m; // 2 % ränta för sparkonton
+            }
+
             _accounts.Add(account);
-           await SaveAsync();
+            await SaveAsync();
             return account;
         }
+
 
         public List<BankAccount> GetAccounts()
         {
@@ -72,9 +79,9 @@ namespace BlazorApp4.Services
 
         public async Task Transfer(Guid fromAccountId, Guid toAccountId, decimal amount)
         {
-            var fromAccount = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == fromAccountId)
+            var fromAccount = _accounts.FirstOrDefault(a => a.Id == fromAccountId)
             ?? throw new KeyNotFoundException($"Account with ID {fromAccountId} not found.");
-            var toAccount = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == toAccountId)
+            var toAccount = _accounts.FirstOrDefault(a => a.Id == toAccountId)
             ?? throw new KeyNotFoundException($"Account with ID {toAccountId} not found.");
 
             if (fromAccount.Balance < amount)
@@ -92,7 +99,7 @@ namespace BlazorApp4.Services
 
         public async Task DepositAsync(Guid accountId, decimal amount)
         {
-            var account = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == accountId)
+            var account = _accounts.FirstOrDefault(a => a.Id == accountId)
                 ?? throw new KeyNotFoundException($"Konto med ID {accountId} hittades inte.");
 
             if (amount <= 0)
@@ -106,7 +113,7 @@ namespace BlazorApp4.Services
 
         public async Task WithdrawAsync(Guid accountId, decimal amount)
         {
-            var account = _accounts.OfType<BankAccount>().FirstOrDefault(a => a.Id == accountId)
+            var account = _accounts.FirstOrDefault(a => a.Id == accountId)
                 ?? throw new KeyNotFoundException($"Konto med ID {accountId} hittades inte.");
 
             if (amount <= 0)
@@ -120,6 +127,19 @@ namespace BlazorApp4.Services
             }
 
             account.Withdraw(amount);
+            await SaveAsync();
+        }
+        public async Task ApplyInterestAsync()
+        {
+            foreach (var account in _accounts.Where(a =>
+                     a.AccountType == AccountType.Savings &&
+                     a.InterestRate.HasValue &&
+                     a.InterestRate > 0))
+            {
+                var interest = account.Balance * account.InterestRate.Value;
+                account.ApplyInterest();
+            }
+
             await SaveAsync();
         }
     }

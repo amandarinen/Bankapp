@@ -9,7 +9,7 @@
 }
 else
 {
-    {/*Välj konto*/}
+    <!-- Choose account -->
     <div class="mb-2">
         <label>Choose Account</label>
         <InputSelect TValue="Guid"
@@ -18,12 +18,39 @@ else
                     @bind-Value="SelectedAccountId">
             @foreach (var account in _accounts)
             {
-                <option value="@account.Id">@account.Name - Balance: @account.Balance</option>
+                <option value="@account.Id">@account.Name - Balance: @account.Balance.ToString("N2")</option>
             }
 
         </InputSelect>
     </div>
 
+    <!-- Filter -->
+    <div class="mb-3">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label>From date</label>
+                <InputDate @bind-Value="fromDate" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label>To date</label>
+                <InputDate @bind-Value="toDate" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label>Type of transaction</label>
+                <InputSelect @bind-Value="selectedType" class="form-select">
+                    <option value="">All transactions</option>
+                    @foreach (var type in Enum.GetValues<TransactionType>())
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sorting -->
     <div class="mb-2">
         <button class="btn btn-sm" @onclick="() => SetSort(SortKey.Date)">
             ↓↑ Date @(currentKey == SortKey.Date ? (descending ? "↓" : "↑") : "")
@@ -39,43 +66,39 @@ else
     {
     <p> Choose Account </p>
     }
-    @* else if(_selectedAccount.Transactions?.Any() ?? false)
-    {
-    <p>inga transaktioner än</p>
-    } *@
     else
     {
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Transaction Type</th>
-                        <th>Amount after transaction</th>
-                        <th>from -> to</th>
-                    </tr>
-                </thead>
-                <tbody>
+    <table class="table table-sm table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Transaction Type</th>
+                <th>Amount after transaction</th>
+                <th>from -> to</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var transaction in sortedTransaction())
+                {
+                <tr>
+                <td>@transaction.TimeStamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td>
+                <td>@transaction.Amount.ToString("N2")</td>
+                <td>@transaction.transactionType</td>
+                    <td>@transaction.BalanceAfterTransaction.ToString("N2")</td>
+                <td>
+                    @if(transaction.FromAccountId.HasValue || transaction.ToAccountId.HasValue)
+                        {
+                         <span>@(transaction.FromAccountId.ToString()[..6]) -> @(transaction.ToAccountId.ToString()[..6])</span>
+                        }
+                </td>
+                </tr>
+                 }
+        </tbody>
+    </table>
+    }
 
-                    @foreach(var transaction in sortedTransaction())
-                    {
-                        <tr>
-                        <td>@transaction.TimeStamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                        <td>@transaction.Amount</td>
-                        <td>@transaction.transactionType</td>
-                        <td>@transaction.BalanceAfterTransaction</td>
-                        <td>
-                            @if(transaction.FromAccountId.HasValue || transaction.ToAccountId.HasValue)
-                            {
-                                <span>@(transaction.FromAccountId.ToString()[..6]) -> @(transaction.ToAccountId.ToString()[..6])</span>
-                            }
-                        </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-<!-- Code for the design -->
+<!-- Code -->
 @code {
     // Instance variables
     private List<BankAccount> _accounts = new();
@@ -83,6 +106,10 @@ else
     private Guid _selectedAccountId;
     private SortKey currentKey = SortKey.Date;
     private bool descending = true;
+
+    private DateTime? fromDate;
+    private DateTime? toDate;
+    private string? selectedType;
 
     private enum SortKey
     {
@@ -134,22 +161,41 @@ else
     private IEnumerable<Transaction> sortedTransaction()
     {
         if (_selectedAccount == null)
+        {
             return Enumerable.Empty<Transaction>();
+        }
 
-        // sortera listan på datum och belopp
         var sortedList = _selectedAccount.Transactions.AsEnumerable();
+
+        // Filter on date
+        if (fromDate.HasValue)
+        {
+            sortedList = sortedList.Where(t => t.TimeStamp.Date >= fromDate.Value.Date);
+        }
+
+        if (toDate.HasValue)
+        {
+            sortedList = sortedList.Where(t => t.TimeStamp.Date <= toDate.Value.Date);
+        }
+
+        // Filter on transaction type
+        if (!string.IsNullOrEmpty(selectedType) &&
+            Enum.TryParse<TransactionType>(selectedType, out var parsedType))
+        {
+            sortedList = sortedList.Where(t => t.transactionType == parsedType);
+        }
+
+        // Sort on date and amount
         sortedList = currentKey switch
         {
             SortKey.Amount => (descending 
                 ? sortedList.OrderByDescending(transaction => transaction.Amount)
-            : sortedList.OrderBy(transaction => transaction.Amount)),
+                : sortedList.OrderBy(transaction => transaction.Amount)),
             SortKey.Date => (descending 
                 ? sortedList.OrderByDescending(transaction => transaction.TimeStamp)
                 : sortedList.OrderBy(transaction => transaction.TimeStamp))
         };
         return sortedList;
     }
-
-    
-
 }
+
