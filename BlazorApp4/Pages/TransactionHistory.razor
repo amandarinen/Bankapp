@@ -5,7 +5,7 @@
 
 @if (_accounts.Count == 0)
 {
-    <p>Inga konton finns.</p>
+    <p>No accounts found.</p>
 }
 else
 {
@@ -68,6 +68,7 @@ else
     }
     else
     {
+        <!-- Transaction -->
     <table class="table table-sm table-hover align-middle">
         <thead>
             <tr>
@@ -100,23 +101,30 @@ else
 
 <!-- Code -->
 @code {
-    // Instance variables
+
+    //Instance variables
     private List<BankAccount> _accounts = new();
     private BankAccount? _selectedAccount;
     private Guid _selectedAccountId;
     private SortKey currentKey = SortKey.Date;
     private bool descending = true;
 
+    //Filter parameters
     private DateTime? fromDate;
     private DateTime? toDate;
     private string? selectedType;
 
+    //Sorting options
     private enum SortKey
     {
         Date, 
         Amount
     }
 
+    /// <summary>
+    /// Changes the current sorting key and toggles the sorting direction.
+    /// </summary>
+    /// <param name="sortKey">Key to sort by amount and date.</param>
     private void SetSort(SortKey sortKey)
     {
         if(currentKey == sortKey)
@@ -130,6 +138,9 @@ else
         }
     }
 
+    /// <summary>
+    /// Sets or gets accountId.
+    /// </summary>
     private Guid SelectedAccountId
     {
         get => _selectedAccountId;
@@ -143,21 +154,28 @@ else
         }
     }
 
+    /// <summary>
+    /// Loads all bank accounts from the account service when initialized.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         await AccountService.EnsureLoadedAsync();
         _accounts = AccountService.GetAccounts();
 
-        // om det finns konton i vår lista, välj första för att visa i UI
+        // Select the first account by default if any exist
         if (_accounts.Count > 0)
         {
             _selectedAccountId = _accounts[0].Id;
             _selectedAccount = _accounts[0];
         }
-        
+
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Returns a transaction list that is sorted and filtered for the selected account.
+    /// </summary>
+    /// <returns>Filtered and sorted enumerable list of transactions.</returns>
     private IEnumerable<Transaction> sortedTransaction()
     {
         if (_selectedAccount == null)

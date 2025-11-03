@@ -1,7 +1,242 @@
 ﻿@page "/"
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@inject IAccountService AccountService
+@inject IStorageService StorageService
 
-<PageTitle>Home</PageTitle>
+<h3 class="mb-5">Welcome!</h3>
 
-<h1>Välkommen till Amandas bankapp</h1>
+<h5 class="mb-5">You can choose to import an account or export an existing account below. </h5>
 
+@if (_accounts == null)
+{
+    <p>Loading accounts...</p>
+}
+else if (_accounts.Count == 0)
+{
+    <p>No accounts found.</p>
+}
+else
+{
+    <!-- Account selection and import/export buttons -->
+    <div class="mb-3">
+        <label class="form-label fw-bold">Select account to export:</label>
+        <select class="form-select w-auto d-inline-block" @bind="selectedAccountId">
+            <option value="">All accounts</option>
+            @foreach (var acc in _accounts)
+            {
+                <option value="@acc.Id">@acc.Name (@acc.AccountType)</option>
+            }
+        </select>
+
+        <button class="btn btn-primary ms-2" @onclick="ExportAccounts">Export</button>
+
+        <label class="btn btn-secondary ms-2 mb-0">
+            Import
+            <InputFile key="@fileInputKey" class="d-none" OnChange="OnFileSelected" accept=".json" />
+        </label>
+    </div>
+
+    <!-- Status messages -->
+    @if (_showMessage)
+    {
+        <div class="@(_isError ? "text-danger" : "text-success") mt-2 small">
+            @_message
+        </div>
+    }
+
+    <!-- Account list -->
+    <table class="table table-sm table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Account Name</th>
+                <th>Type</th>
+                <th>Balance</th>
+                <th>Currency</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var account in _accounts)
+            {
+                <tr>
+                    <td>@account.Name</td>
+                    <td>@account.AccountType</td>
+                    <td>@account.Balance.ToString("N2")</td>
+                    <td>@account.Currency</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<!-- Code -->
+@code {
+
+    //Instance variables
+    private List<BankAccount>? _accounts;
+    private string? selectedAccountId;
+    private string fileInputKey = Guid.NewGuid().ToString();
+    private string? _message;
+    private bool _isError;
+    private bool _showMessage;
+
+    /// <summary>
+    /// Displays a temporary message on the page for 4 seconds.
+    /// </summary>
+    private Action<string, bool> ShowTempMessage => (message, isError) =>
+    {
+        _message = message;
+        _isError = isError;
+        _showMessage = true;
+
+        Task.Run(async () =>
+        {
+            await Task.Delay(4000);
+            _showMessage = false;
+            await InvokeAsync(StateHasChanged);
+        });
+    };
+
+    /// <summary>
+    /// Load accounts when the page initializes
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        await AccountService.EnsureLoadedAsync();
+        _accounts = AccountService.GetAccounts();
+    }
+
+    /// <summary>
+    /// Exports either all accounts or the selected account to a JSON file, including transactions.
+    /// </summary>
+    private async Task ExportAccounts()
+    {
+        try
+        {
+            await AccountService.EnsureLoadedAsync();
+
+            IEnumerable<BankAccount> accountsToExport;
+            string fileName;
+
+            if (string.IsNullOrEmpty(selectedAccountId))
+            {
+                // Export all accounts if no selection
+                accountsToExport = _accounts!;
+                fileName = "all-accounts-export.json";
+            }
+            else if (Guid.TryParse(selectedAccountId, out var selectedGuid))
+            {
+                // Find the selected account by Guid
+                var acc = _accounts!.FirstOrDefault(a => a.Id == selectedGuid);
+                if (acc == null)
+                {
+                    ShowTempMessage("Selected account not found.", true);
+                    return;
+                }
+                accountsToExport = new List<BankAccount> { acc };
+
+                // Use account name in file (replace invalid characters)
+                var safeName = string.Concat(acc.Name.Where(c => char.IsLetterOrDigit(c) || c == '-' || c == '_'));
+                fileName = $"{safeName}-export.json";
+            }
+            else
+            {
+                // Invalid Guid input
+                ShowTempMessage("Invalid account ID.", true);
+                return;
+            }
+
+            // Prepare export data including Id and transactions
+            var exportData = accountsToExport.Select(account => new
+            {
+                account.Id,
+                account.Name,
+                account.AccountType,
+                account.Currency,
+                account.Balance,
+                Transactions = account.Transactions?.Select(t => new
+                {
+                    t.TimeStamp,
+                    t.Amount,
+                    t.transactionType,
+                    t.BalanceAfterTransaction,
+                    FromAccount = t.FromAccountId,
+                    ToAccount = t.ToAccountId
+                })
+            });
+
+            // Trigger file download
+            await StorageService.ExportToFileAsync(fileName, exportData);
+
+            ShowTempMessage("Export successful!", false);
+        }
+        catch (Exception ex)
+        {
+            ShowTempMessage($"Export failed: {ex.Message}", true);
+        }
+    }
+
+    /// <summary>
+    /// Handles importing accounts from a JSON file.
+    /// Prevents importing if an account with the same ID already exists.
+    /// Adds new accounts to the existing list and saves them to local storage.
+    /// </summary>
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        using var stream = file.OpenReadStream(5 * 1024 * 1024);
+        using var reader = new StreamReader(stream);
+        var json = await reader.ReadToEndAsync();
+
+        try
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                Converters = { new JsonStringEnumConverter() }
+            };
+
+            // Deserialize JSON (support both list and single object)
+            List<BankAccount>? importedAccounts = JsonSerializer.Deserialize<List<BankAccount>>(json, options);
+            if (importedAccounts == null && json.TrimStart().StartsWith("{"))
+            {
+                var single = JsonSerializer.Deserialize<BankAccount>(json, options);
+                if (single != null)
+                    importedAccounts = new List<BankAccount> { single };
+            }
+
+            if (importedAccounts == null || importedAccounts.Count == 0)
+                throw new Exception("No accounts found in the file.");
+
+            await AccountService.EnsureLoadedAsync();
+            var existingAccounts = AccountService.GetAccounts();
+
+            // Check for duplicates
+            var duplicate = importedAccounts.FirstOrDefault(i => existingAccounts.Any(e => e.Id == i.Id));
+            if (duplicate != null)
+            {
+                ShowTempMessage($"An account with the same ID already exists ({duplicate.Name}). Import cancelled.", true);
+                return;
+            }
+
+            // Add imported accounts and persist to local storage
+            existingAccounts.AddRange(importedAccounts);
+            await AccountService.SetAccounts(existingAccounts);
+            _accounts = AccountService.GetAccounts();
+            ShowTempMessage("Import successful!", false);
+        }
+        catch (JsonException)
+        {
+            ShowTempMessage("Invalid JSON format!", true);
+        }
+        catch (Exception ex)
+        {
+            ShowTempMessage($"Import failed: {ex.Message}", true);
+        }
+
+        // Reset file input to allow re-importing the same file if needed
+        fileInputKey = Guid.NewGuid().ToString();
+        await InvokeAsync(StateHasChanged);
+    }
+}
 

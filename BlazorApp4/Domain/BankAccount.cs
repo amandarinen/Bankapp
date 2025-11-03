@@ -10,19 +10,22 @@ namespace BlazorApp4.Domain
     /// </summary>
     public class BankAccount : IBankAccount
     {
-        // Constants
+        // Properties
         public Guid Id { get; private set; } = Guid.NewGuid();
         public string Name { get; private set; }
         public AccountType AccountType { get; private set; }
         public CurrencyType Currency { get; private set; }
         public decimal Balance { get; private set; }
         public DateTime LastUpdated { get; private set; }
-        public decimal? InterestRate { get; set; } // Null for non-savings accounts
+        public decimal? InterestRate { get; set; } 
 
+        // List of all transactions for this account
         public readonly List<Transaction> _transaction = new();
         public List<Transaction> Transactions => _transaction;
 
-        // Constructor
+        /// <summary>
+        /// Creates a new bank account with the specified information
+        /// </summary>
         public BankAccount(string name, AccountType accountType, CurrencyType currency, decimal initialBalance)
         {
             Name = name;
@@ -33,15 +36,8 @@ namespace BlazorApp4.Domain
         }
 
         /// <summary>
-        /// 
+        /// JSON constructor used for deserialization of account data.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="name"></param>
-        /// <param name="accountType"></param>
-        /// <param name="currency"></param>
-        /// <param name="balance"></param>
-        /// <param name="lastUpdated"></param>
-        /// <param name="transactions"></param>
         [JsonConstructor]
         public BankAccount(Guid id, string name, AccountType accountType, CurrencyType currency, decimal balance, DateTime lastUpdated, List<Transaction>? transactions = null, decimal? interestRate = null)
         {
@@ -60,11 +56,11 @@ namespace BlazorApp4.Domain
         /// <summary>
         /// Transfers a specific amount from one account to another
         /// </summary>
-        /// <param name="toAccount">which account to transfer to</param>
-        /// <param name="amount"></param>
+        /// <param name="toAccount">Which account to transfer to</param>
+        /// <param name="amount">The amount to transfer</param>
         public void TransferTo(BankAccount toAccount, decimal amount)
         {
-            // från vilket konto
+            // Withdraw from this account
             Balance -= amount;
             LastUpdated = DateTime.Now;
             _transaction.Add(new Transaction
@@ -77,7 +73,7 @@ namespace BlazorApp4.Domain
                 TimeStamp = DateTime.Now
             });
 
-            // till vilket konto
+            // Deposit to this account
             toAccount.Balance += amount;
             toAccount.LastUpdated = DateTime.Now;
             toAccount._transaction.Add(new Transaction
@@ -92,15 +88,15 @@ namespace BlazorApp4.Domain
         }
 
         /// <summary>
-        /// Deposit a specific amount from the bank account balance
+        /// Deposits a specific amount into the account
         /// </summary>
-        /// <param name="amount"></param>
-        /// <exception cref="ArgumentException"></exception>
+        /// <param name="amount">The amount to deposit</param>
+        /// <exception cref="ArgumentException">Thrown if the amount is less than zero</exception>
         public void Deposit(decimal amount)
         {
             if (amount < 0)
             {
-                throw new ArgumentException("Beloppet måste vara större än 0!");
+                throw new ArgumentException("The amount must be greater than 0!");
             }
 
             Balance += amount;
@@ -115,21 +111,21 @@ namespace BlazorApp4.Domain
         }
 
         /// <summary>
-        /// Withdraw a specific amount from the bank account balance
+        /// Withdraws a specific amount from the account.
         /// </summary>
-        /// <param name="amount">The specified amount</param>
-        /// <exception cref="ArgumentException"></exception>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <param name="amount">The amount to withdraw.</param>
+        /// <exception cref="ArgumentException">Thrown if the amount is less than zero.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the balance is insufficient.</exception>
         public void Withdraw(decimal amount)
         {
             if (amount < 0)
             {
-                throw new ValidationException("Beloppet måste vara större än 0!");
+                throw new ValidationException("The amount must be greater than 0!");
             }
 
             if (Balance < amount)
             {
-                throw new InvalidOperationException("Inte tillräckligt saldo!");
+                throw new InvalidOperationException("Insufficient balance!");
             }
 
             Balance -= amount;
@@ -143,6 +139,9 @@ namespace BlazorApp4.Domain
             });
         }
 
+        /// <summary>
+        /// Applies interest to the balance if the account is a savings account
+        /// </summary>
         public void ApplyInterest()
         {
             if (AccountType == AccountType.Savings && InterestRate.HasValue && InterestRate > 0)
