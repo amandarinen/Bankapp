@@ -33,15 +33,14 @@ Supported browser with localStorage (modern Chrome, Edge, Firefox, Safari)
 RUNNING THE APPLICATION
 
 1. Clone the repository:
-  git clone https://github.com/yourusername/BlazorApp4.git
+  git clone https://github.com/amandarinen/Bankapp.git
   cd BlazorApp4
 2. Restore dependencies and build:
   dotnet restore
   dotnet build
 3. Run the application:
    dotnet run
-4. Open the browser at https://localhost:5001
- (or the URL printed in the console).
+4. Open the browser at https://localhost:5001 (or the URL printed in the console).
 5. Enter the 4-digit PIN (1234) to unlock the app and start using it.
 
 
