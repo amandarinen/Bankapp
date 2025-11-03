@@ -2,6 +2,9 @@
 
 namespace BlazorApp4.Domain
 {
+    /// <summary>
+    /// The available types of transactions
+    /// </summary>
     public enum TransactionType
     {
         Deposit,
@@ -11,6 +14,9 @@ namespace BlazorApp4.Domain
         Interest
     }
 
+    /// <summary>
+    /// Represents a single transaction made on a bank account
+    /// </summary>
     public class Transaction
     {
         public Guid Id { get; set; } = Guid.NewGuid();

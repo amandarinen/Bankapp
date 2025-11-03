@@ -2,6 +2,7 @@
 @inject IAccountService AccountService
 @inject LockService LockService
 
+<!-- Main application layout -->
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -18,14 +19,15 @@
     </main>
 </div>
 
+<!-- Lock screen overlay (visible when app is locked) -->
 @if (LockService.IsLocked)
 {
     <div class="lock-overlay">
         <div class="lock-screen text-center">
-            <h3>Ange PIN för att låsa upp</h3>
+            <h3>Enter PIN to unlock</h3>
             <input type="password" @bind="enteredPin" maxlength="4"
                    class="form-control w-25 mx-auto text-center" />
-            <button class="btn btn-primary mt-3" @onclick="Unlock">Lås upp</button>
+            <button class="btn btn-primary mt-3" @onclick="Unlock">Unlock</button>
 
             @if (!string.IsNullOrEmpty(message))
             {
@@ -36,26 +38,40 @@
 }
 
 @code {
+    // Holds the entered PIN code
     private string enteredPin = "";
+
+    // Error message shown when the PIN is incorrect
     private string? message;
 
+    /// <summary>
+    /// Subscribes to the lock state change event when the layout initializes.
+    /// </summary>
     protected override void OnInitialized()
     {
         LockService.OnLockStateChanged += StateHasChanged;
     }
 
+    /// <summary>
+    /// Unsubscribes from the event when the layout is disposed.
+    /// </summary>
     public void Dispose()
     {
         LockService.OnLockStateChanged -= StateHasChanged;
     }
 
+    /// <summary>
+    /// Attempts to unlock the app using the entered PIN.
+    /// Shows an error message if the PIN is incorrect.
+    /// </summary>
     private void Unlock()
     {
         message = null;
         LockService.Unlock(enteredPin);
+
         if (LockService.IsLocked)
         {
-            message = "Fel PIN!";
+            message = "Incorrect PIN!";
             enteredPin = "";
         }
         else

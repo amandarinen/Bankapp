@@ -1,25 +1,38 @@
-﻿namespace BlazorApp4.Interfaces;
-
-/// <summary>
-/// Interface containing the BankAccount methods
-/// </summary>
-
-
-
-
-public interface IBankAccount
+﻿namespace BlazorApp4.Interfaces
 {
-    Guid Id { get; }
-    string Name { get; }
-    AccountType AccountType { get; }
-    CurrencyType Currency {  get; }
-    decimal Balance { get; }
-    DateTime LastUpdated { get; }
+    /// <summary>
+    /// Defines the core behavior and properties of a bank account.
+    /// </summary>
+    public interface IBankAccount
+    {
+        // Unique identifier for the account.
+        Guid Id { get; }
 
-    List<Transaction> Transactions { get; }
+        // The name of the account.
+        string Name { get; }
 
-    void Withdraw(decimal amount);
-    void Deposit(decimal amount);
+        // The type of the account (Deposit or Savings).
+        AccountType AccountType { get; }
 
-    void TransferTo(BankAccount toAccount, decimal amount);
+        // The currency used for the account.
+        CurrencyType Currency { get; }
+
+        // The current balance of the account.
+        decimal Balance { get; }
+
+        // The last time the account was updated.
+        DateTime LastUpdated { get; }
+
+        // A list of all transactions related to the account.
+        List<Transaction> Transactions { get; }
+
+        // Withdraws a specified amount from the account.
+        void Withdraw(decimal amount);
+
+        // Deposits a specified amount into the account.
+        void Deposit(decimal amount);
+
+        // Transfers a specified amount to another account.
+        void TransferTo(BankAccount toAccount, decimal amount);
+    }
 }
