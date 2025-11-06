@@ -1,9 +1,9 @@
+
 # BankApp – Blazor WebAssembly
 
 
 
 A simple Blazor WebAssembly application for managing bank accounts, including deposits, withdrawals, transfers, and transaction history.
-
 
 
 This project was developed as part of an introductory C# and .NET course.
@@ -14,8 +14,7 @@ It focuses on learning the fundamentals of Blazor, state management, and persist
 
 
 
-##### FEATURES
-
+FEATURES
 
 
 * Create, update, and delete bank accounts.
@@ -32,8 +31,7 @@ It focuses on learning the fundamentals of Blazor, state management, and persist
 
 
 
-##### TECHNICAL DECISIONS
-
+TECHNICAL DECISIONS
 
 
 LocalStorage instead of a database.
@@ -62,8 +60,7 @@ Important operations (such as saving, updating, and exporting accounts) are logg
 
 
 
-##### PREREQUISITES
-
+PREREQUISITES
 
 
 .NET 8 SDK.
@@ -74,8 +71,7 @@ A modern web browser with localStorage support (Chrome, Edge, Firefox, Safari).
 
 
 
-##### RUNNING THE APPLICATION
-
+RUNNING THE APPLICATION
 
 
 * Clone the repository: git clone https://github.com/amandarinen/Bankapp.git cd BlazorApp4
@@ -87,24 +83,15 @@ A modern web browser with localStorage support (Chrome, Edge, Firefox, Safari).
 
 
 
-
-##### FUTURE IMPROVEMENTS
-
+FUTURE IMPROVEMENTS
 
 
 If the project were to be developed further, several enhancements could be implemented to make it more realistic. A natural next step would be to add user authentication, allowing multiple users to securely access their own accounts instead of sharing the same local data.
 
-
-
 Another valuable improvement would be to include currency conversion, enabling users to view balances in different currencies.
-
-
 
 In a more advanced version, transaction history and account data could be stored in a backend database instead of browser localStorage. This would make the application more robust, secure, and scalable.
 
-
-
 Finally, instead of using simple Console.WriteLine() statements, logging could be handled through the ILogger interface. This would allow for structured logging, configurable log levels, and better debugging support in production scenarios.
-
 
 
