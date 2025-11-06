@@ -47,7 +47,7 @@ namespace BlazorApp4.Domain
             Currency = currency;
             Balance = balance;
             LastUpdated = lastUpdated;
-            InterestRate = interestRate;
+            InterestRate = interestRate ?? 0m;
 
             if (transactions != null)
                 _transaction = transactions;
@@ -106,7 +106,8 @@ namespace BlazorApp4.Domain
             {
                 transactionType = TransactionType.Deposit,
                 Amount = amount,
-                BalanceAfterTransaction = Balance
+                BalanceAfterTransaction = Balance,
+                FromAccountId = Id
             });
         }
 
@@ -135,7 +136,8 @@ namespace BlazorApp4.Domain
             {
                 transactionType = TransactionType.Withdrawal,
                 Amount = amount,
-                BalanceAfterTransaction = Balance
+                BalanceAfterTransaction = Balance,
+                FromAccountId = Id
             });
         }
 
@@ -144,20 +146,38 @@ namespace BlazorApp4.Domain
         /// </summary>
         public void ApplyInterest()
         {
-            if (AccountType == AccountType.Savings && InterestRate.HasValue && InterestRate > 0)
+            if (AccountType != AccountType.Savings)
             {
-                var interest = Balance * InterestRate.Value;
-                Balance += interest;
-                LastUpdated = DateTime.UtcNow;
-
-                _transaction.Add(new Transaction
-                {
-                    transactionType = TransactionType.Interest,
-                    Amount = interest,
-                    BalanceAfterTransaction = Balance
-                });
+                return;
             }
-        }
 
+            if (InterestRate.GetValueOrDefault() <= 0)
+            {
+                return;
+            }
+
+            var daysElapsed = (DateTime.UtcNow - LastUpdated).TotalDays;
+
+            if (daysElapsed < 1)
+            {
+                daysElapsed = 1;
+            }
+
+            decimal dailyRate = InterestRate.GetValueOrDefault() / 365m;
+            decimal interestAmount = Balance * dailyRate * (decimal)daysElapsed;
+
+            Balance += Math.Round(interestAmount, 2);
+            LastUpdated = DateTime.UtcNow;
+
+            _transaction.Add(new Transaction
+            {
+                transactionType = TransactionType.Interest,
+                Amount = Math.Round(interestAmount, 2),
+                BalanceAfterTransaction = Balance,
+                TimeStamp = DateTime.UtcNow
+            });
+
+            Console.WriteLine($"[BankAccount] Interest applied to {Name}");
+        }
     }
 }

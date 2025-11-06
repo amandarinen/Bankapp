@@ -82,7 +82,7 @@ else
                         <td class="text-end">
                             <button class="btn btn-sm btn-outline-danger"
                                     @onclick="() => DeleteAccountAsync(account.Id)">
-                                <i class="bi bi-trash"></i> Delete
+                                <i class=" "></i> Delete
                             </button>
                         </td>
                     </tr>
@@ -105,11 +105,22 @@ else
     /// <summary>
     /// Called when the component is initialized.
     /// Ensures that account data is loaded and displayed in the UI.
+    /// Also starts the automatic daily interest application.
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
         await AccountService.EnsureLoadedAsync();
         _accounts = AccountService.GetAccounts();
+        AccountService.StateChanged += OnStateChanged;
+        AccountService.AutoApplyInterest();
+    }
+
+    /// <summary>
+    /// Called when the AccountService signals that state has changed.
+    /// </summary>
+    public void OnStateChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
     }
 
     /// <summary>
@@ -189,10 +200,11 @@ else
     }
 
     /// <summary>
-    /// Applies interest to all savings accounts, updates account list and refreshes UI.
+    /// Manually applies interest to all savings accounts, updates account list and refreshes UI.
     /// </summary>
     private async Task ApplyInterestToAll()
     {
+        Console.WriteLine("Manual interest applied");
         await AccountService.ApplyInterestAsync();
         _accounts = AccountService.GetAccounts(); 
         StateHasChanged(); 

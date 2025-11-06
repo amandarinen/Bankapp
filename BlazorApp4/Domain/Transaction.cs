@@ -4,18 +4,6 @@ using System.Text.Json.Serialization;
 namespace BlazorApp4.Domain
 {
     /// <summary>
-    /// The available types of transactions
-    /// </summary>
-    public enum TransactionType
-    {
-        Deposit,
-        Withdrawal,
-        TransferIn,
-        TransferOut,
-        Interest
-    }
-
-    /// <summary>
     /// Represents a single transaction made on a bank account
     /// </summary>
     public class Transaction

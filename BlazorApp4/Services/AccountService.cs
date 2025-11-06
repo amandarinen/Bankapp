@@ -3,13 +3,26 @@
     /// <summary>
     /// Service responsible for managing bank accounts
     /// </summary>
-    public class AccountService : IAccountService
+    public class AccountService : IAccountService, IDisposable
     {
+        // Constants
         private const string StorageKey = "BlazorApp4.accounts";
+
+        // Instance variables
         private readonly List<BankAccount> _accounts = new();
         private readonly IStorageService _storageService;
-
         private bool isLoaded;
+        private bool isRunning;
+
+        /// <summary>
+        /// Triggered when the state of accounts changes (e.g., after deposit, withdrawal, or interest applied).
+        /// </summary>
+        public event Action? StateChanged;
+
+        /// <summary>
+        /// Invokes the StateChanged event to notify subscribers of updates.
+        /// </summary>
+        public void NotifyEvent() => StateChanged?.Invoke();
 
         /// <summary>
         /// Initializes a new instance of the AccountService.
@@ -29,7 +42,6 @@
                 return;
 
             await IsInitialized();
-            await ApplyInterestAsync();
             isLoaded = true;
             Console.WriteLine("[AccountService] Accounts loaded.");
         }
@@ -71,7 +83,7 @@
             if (string.IsNullOrWhiteSpace(name))
                             throw new InvalidOperationException("Account name can not be empty.");
             if (initialBalance < 0)
-                throw new ArgumentOutOfRangeException(nameof(initialBalance), "Amount must be positive.");
+                throw new ArgumentOutOfRangeException("Amount must be positive.");
 
             _accounts.Add(account);
             await SaveAsync();
@@ -102,7 +114,7 @@
 
             _accounts.Clear();
             _accounts.AddRange(accounts);
-            await _storageService.SetItemAsync(StorageKey, _accounts);
+            await SaveAsync();
             Console.WriteLine("[AccountService] Accounts updated via SetAccounts (interest ensured for savings accounts).");
         }
 
@@ -154,7 +166,7 @@
             if (fromAccount.Balance < amount)
                 throw new InvalidOperationException("Insufficient funds.");
             if (amount <= 0)
-                throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be positive.");
+                throw new ArgumentOutOfRangeException("Amount must be positive.");
 
             fromAccount.TransferTo(toAccount, amount);
             await SaveAsync();
@@ -171,7 +183,9 @@
             var account = _accounts.FirstOrDefault(a => a.Id == accountId)
                 ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
             if (amount <= 0)
-                throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be positive.");
+            {
+                throw new ArgumentOutOfRangeException("Amount must be positive.");
+            }
 
             account.Deposit(amount);
             await SaveAsync();
@@ -188,9 +202,13 @@
             var account = _accounts.FirstOrDefault(a => a.Id == accountId)
                 ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
             if (amount <= 0)
-                throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be positive.");
+            {
+                throw new ArgumentOutOfRangeException("Amount must be positive.");
+            }
             if (account.Balance < amount)
+            {
                 throw new InvalidOperationException("Insufficient balance.");
+            }
 
             account.Withdraw(amount);
             await SaveAsync();
@@ -198,20 +216,57 @@
         }
 
         /// <summary>
-        /// Applies interest to all savings accounts, automatically when accounts are loaded.
+        /// Applies interest to all savings accounts and can be triggered manually.
         /// </summary>
         public async Task ApplyInterestAsync()
         {
-            foreach (var account in _accounts.Where(a =>
-                     a.AccountType == AccountType.Savings &&
-                     a.InterestRate.HasValue &&
-                     a.InterestRate > 0))
+            Console.WriteLine("[AccountService] ApplyInterestAsync called.");
+
+            foreach (var account in _accounts.Where(a => a.AccountType == AccountType.Savings))
             {
-                account.ApplyInterest();
+                var daysElapsed = (DateTime.Now - account.LastUpdated).Seconds;
+
+                if (daysElapsed > 0)
+                {
+                    account.ApplyInterest();
+                    Console.WriteLine($"Interest applied to {account.Name}, new balance: {account.Balance}");
+                }
             }
 
             await SaveAsync();
-            Console.WriteLine("[AccountService] Interest applied to savings accounts.");
+            NotifyEvent();
+        }
+
+        /// <summary>
+        /// Automatically starts a background task to apply interest daily.
+        /// </summary>
+        public void AutoApplyInterest()
+        {
+            isRunning = true;
+            Task.Run(async () =>
+            {
+                while (isRunning)
+                {
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromDays(1));
+                        await ApplyInterestAsync();
+                        Console.WriteLine("Auto Apply Interest");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[AutoApplyInterest] Error: {ex.Message}");
+                    }
+                }
+            });
+        }
+
+        /// <summary>
+        /// Disposes the service and stops any background tasks if necessary.
+        /// </summary>
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }
