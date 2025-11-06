@@ -12,15 +12,12 @@ else
     <!-- Choose account -->
     <div class="mb-2">
         <label>Choose Account</label>
-        <InputSelect TValue="Guid"
-                    class="form-select"
-                    id="accountSelect"
-                    @bind-Value="SelectedAccountId">
+        <InputSelect TValue="Guid" class="form-select" @bind-Value="SelectedAccountId">
+            <option value="@Guid.Empty">All accounts</option>
             @foreach (var account in _accounts)
             {
                 <option value="@account.Id">@account.Name - Balance: @account.Balance.ToString("N2")</option>
             }
-
         </InputSelect>
     </div>
 
@@ -61,11 +58,14 @@ else
     </div>
 
 }
-    
-    @if(_selectedAccount == null)
-    {
-    <p> Choose Account </p>
-    }
+ 
+@{
+    var transactions = sortedTransaction().ToList();
+}
+@if (!transactions.Any())
+{
+    <p>No transactions found.</p>
+}
     else
     {
         <!-- Transaction -->
@@ -105,7 +105,7 @@ else
     //Instance variables
     private List<BankAccount> _accounts = new();
     private BankAccount? _selectedAccount;
-    private Guid _selectedAccountId;
+    private Guid _selectedAccountId = Guid.Empty;
     private SortKey currentKey = SortKey.Date;
     private bool descending = true;
 
@@ -162,11 +162,11 @@ else
         await AccountService.EnsureLoadedAsync();
         _accounts = AccountService.GetAccounts();
 
-        // Select the first account by default if any exist
+        // Show all accounts as default
         if (_accounts.Count > 0)
         {
-            _selectedAccountId = _accounts[0].Id;
-            _selectedAccount = _accounts[0];
+            _selectedAccountId = Guid.Empty;
+            _selectedAccount = null;
         }
 
         StateHasChanged();
@@ -178,12 +178,20 @@ else
     /// <returns>Filtered and sorted enumerable list of transactions.</returns>
     private IEnumerable<Transaction> sortedTransaction()
     {
-        if (_selectedAccount == null)
-        {
-            return Enumerable.Empty<Transaction>();
-        }
+        IEnumerable<Transaction> sortedList;
 
-        var sortedList = _selectedAccount.Transactions.AsEnumerable();
+        if (_selectedAccountId == Guid.Empty)
+        {
+            sortedList = _accounts.SelectMany(a => a.Transactions);
+        }
+        else
+        {
+            _selectedAccount = _accounts.FirstOrDefault(a => a.Id == _selectedAccountId);
+            if (_selectedAccount == null)
+                return Enumerable.Empty<Transaction>();
+
+            sortedList = _selectedAccount.Transactions.AsEnumerable();
+        }
 
         // Filter on date
         if (fromDate.HasValue)

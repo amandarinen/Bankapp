@@ -12,6 +12,10 @@ else
  <EditForm Model="_model" OnValidSubmit="OnSubmitAsync">
         <DataAnnotationsValidator />
         <ValidationSummary class="text-danger mb-3" />
+        @if (!string.IsNullOrEmpty(_transferValidationMessage))
+        {
+            <div class="text-danger mb-3">@_transferValidationMessage</div>
+        }
 
         <!--From account-->
         <div class="mb-3">
@@ -46,7 +50,7 @@ else
         <!--Amount-->
         <div class="mb-3">
             <label class="form-label">Amount</label>
-            <InputNumber TValue="decimal" @bind-Value="_model.Amount" class="form-control" min="0.01" step="0.01" />
+            <InputNumber TValue="decimal" @bind-Value="_model.Amount" class="form-control"/>
         </div>
 
         <!--Submit button-->
@@ -86,7 +90,7 @@ else
 <h3 class="mt-4 mb-3">Withdraw & Deposit</h3>
 @if (_accounts.Count <1)
 {
-    <p>Skapa minst ett konto för att göra en transaktion</p>
+    <p>Create a least one account to make a transaction.</p>
 }
 else
 {
@@ -99,6 +103,10 @@ else
             <EditForm Model="_withdrawModel" OnValidSubmit="OnWithdrawAsync">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger mb-3" />
+                @if (!string.IsNullOrEmpty(_withdrawValidationMessage))
+                    {
+                        <div class="text-danger mb-3">@_withdrawValidationMessage</div>
+                    }
 
             <div class="mb-3">
                 <label class="form-label">Withdraw from</label>
@@ -116,7 +124,7 @@ else
 
             <div class="mb-3">
                 <label class="form-label">Amount</label>
-                <InputNumber TValue="decimal" @bind-Value="_withdrawModel.Amount" class="form-control" min="0.01" step="0.01" />
+                <InputNumber TValue="decimal" @bind-Value="_withdrawModel.Amount" class="form-control" />
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Complete Withdrawal</button>
@@ -132,6 +140,10 @@ else
         <EditForm Model="_depositModel" OnValidSubmit="OnDepositAsync">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger mb-3" />
+                    @if (!string.IsNullOrEmpty(_depositValidationMessage))
+                    {
+                        <div class="text-danger mb-3">@_depositValidationMessage</div>
+                    }
 
             <div class="mb-3">
                 <label class="form-label">Deposit to</label>
@@ -149,7 +161,7 @@ else
 
             <div class="mb-3">
                 <label class="form-label">Amount</label>
-                <InputNumber TValue="decimal" @bind-Value="_depositModel.Amount" class="form-control" min="0.01" step="0.01" />
+                <InputNumber TValue="decimal" @bind-Value="_depositModel.Amount" class="form-control" />
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Complete Deposit</button>
@@ -168,6 +180,9 @@ else
     private List<BankAccount> _toAccounts = new();
     private readonly WithdrawModel _withdrawModel = new();
     private readonly DepositModel _depositModel = new();
+    private string? _transferValidationMessage;
+    private string? _withdrawValidationMessage;
+    private string? _depositValidationMessage;
 
     /// <summary>
     /// Model for the data required to transfer between two accounts
@@ -213,6 +228,8 @@ else
     /// </summary>
     private async Task OnSubmitAsync()
     {
+        _transferValidationMessage = null;
+
         if (_model.FromAccountId == Guid.Empty || _model.ToAccountId == Guid.Empty)
         {
             StateHasChanged();
@@ -226,19 +243,21 @@ else
         {
             await AccountService.Transfer(_model.FromAccountId, _model.ToAccountId, _model.Amount);
 
-            //update list
+            // Update list
             _accounts = AccountService.GetAccounts();
-
-            //show validation
-            var from = _accounts.First(x => x.Id == _model.FromAccountId);
-            var to = _accounts.First(x => x.Id == _model.ToAccountId);
 
             _model.Amount = 0;
             StateHasChanged();
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            Console.WriteLine(exception.Message);
+            _transferValidationMessage = ex.Message;
+            StateHasChanged();
+
+            await Task.Delay(5000);
+            _transferValidationMessage = null;
+            StateHasChanged();
+            return;
         }
     }
 
@@ -278,17 +297,24 @@ else
     /// </summary>
     private async Task OnWithdrawAsync()
     {
+        _withdrawValidationMessage = null;
         try
         {
             await AccountService.WithdrawAsync(_withdrawModel.FromAccountId, _withdrawModel.Amount);
             _accounts = AccountService.GetAccounts();
             _withdrawModel.Amount = 0;
-            StateHasChanged();
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            _withdrawValidationMessage = ex.Message;
+            StateHasChanged();
+
+            await Task.Delay(5000);
+            _withdrawValidationMessage = null;
+            StateHasChanged();
+            return;
         }
+        StateHasChanged();
     }
 
     /// <summary>
@@ -297,19 +323,25 @@ else
     /// </summary>
     private async Task OnDepositAsync()
     {
+        _depositValidationMessage = null;
         try
         {
             await AccountService.DepositAsync(_depositModel.ToAccountId, _depositModel.Amount);
             _accounts = AccountService.GetAccounts();
             _depositModel.Amount = 0;
-            StateHasChanged();
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
-        }
-    }
+            _depositValidationMessage = ex.Message;
+            StateHasChanged();
 
+            await Task.Delay(5000);
+            _depositValidationMessage = null;
+            StateHasChanged();
+            return;
+        }
+        StateHasChanged();
+    }
 }
 
 

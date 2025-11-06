@@ -34,5 +34,11 @@
 
         // Applies interest to all savings accounts.
         Task ApplyInterestAsync();
+
+        //Event triggered whenever the state of the accounts changes
+        event Action? StateChanged;
+
+        //Starts an automatic daily process that applies interest to all savings accounts
+        void AutoApplyInterest();
     }
 }
