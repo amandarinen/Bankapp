@@ -7,6 +7,10 @@
 <EditForm Model="_model" OnValidSubmit="CreateAccountAsync">
     <DataAnnotationsValidator />
     <ValidationSummary class="text-danger mb-3" />
+    @if (!string.IsNullOrEmpty(_createAccountValidationMessage))
+    {
+        <div class="text-danger mb-3">@_createAccountValidationMessage</div>
+    }
 
     <div class="mb-3">
         <label>Account Name</label>
@@ -30,7 +34,7 @@
 
     <div class="mb-3">
         <label class="form-label">Balance</label>
-        <InputNumber @bind-Value="_model.InitialBalance" class="form-control" min="0.01" step="0.01"></InputNumber>  
+        <InputNumber @bind-Value="_model.InitialBalance" class="form-control" ></InputNumber> 
     </div>
 
     <button type="submit" class="btn btn-primary" >Create account</button>
@@ -49,7 +53,7 @@
 <h3 class="mb-3">All accounts</h3>
 @if(_accounts.Count == 0)
 {
-    <p>Det finns inga konton ännu, registrera ditt första ovan!</p>
+    <p>There are no accounts yet, register your first above!</p>
 }
 else
 {
@@ -94,6 +98,7 @@ else
     // Instance variables
     private CreateAccountModel _model = new();
     private List<BankAccount> _accounts = new();
+    private string? _createAccountValidationMessage;
 
     [Inject] private IJSRuntime JS { get; set; } = default!;
 
@@ -112,6 +117,8 @@ else
     /// </summary>
     private async Task CreateAccountAsync()
     {
+        _createAccountValidationMessage = null;
+
         try
         {
             Console.WriteLine(_model.Name);
@@ -127,10 +134,14 @@ else
             _model.Clear();
         }
 
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            Console.WriteLine(exception);
-            throw;
+            _createAccountValidationMessage = ex.Message;
+            StateHasChanged();
+
+            await Task.Delay(5000);
+            _createAccountValidationMessage = null;
+            StateHasChanged();
         }
     }
 

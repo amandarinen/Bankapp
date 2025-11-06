@@ -1,7 +1,7 @@
 ﻿namespace BlazorApp4.Interfaces
 {
     /// <summary>
-    /// Defines the core behavior and properties of a bank account.
+    /// Defines the behavior and properties of a bank account.
     /// </summary>
     public interface IBankAccount
     {

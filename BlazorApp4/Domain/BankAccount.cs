@@ -32,7 +32,7 @@ namespace BlazorApp4.Domain
             AccountType = accountType;
             Currency = currency;
             Balance = initialBalance;
-            LastUpdated = DateTime.Now;
+            LastUpdated = DateTime.UtcNow;
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace BlazorApp4.Domain
         {
             // Withdraw from this account
             Balance -= amount;
-            LastUpdated = DateTime.Now;
+            LastUpdated = DateTime.UtcNow;
             _transaction.Add(new Transaction
             {
                 transactionType = TransactionType.TransferOut,
@@ -70,12 +70,12 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = Balance,
                 FromAccountId = Id,
                 ToAccountId = toAccount.Id,
-                TimeStamp = DateTime.Now
+                TimeStamp = DateTime.UtcNow
             });
 
             // Deposit to this account
             toAccount.Balance += amount;
-            toAccount.LastUpdated = DateTime.Now;
+            toAccount.LastUpdated = DateTime.UtcNow;
             toAccount._transaction.Add(new Transaction
             {
                 transactionType = TransactionType.TransferIn,
@@ -83,7 +83,7 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = toAccount.Balance,
                 FromAccountId = Id,
                 ToAccountId = toAccount.Id,
-                TimeStamp = DateTime.Now
+                TimeStamp = DateTime.UtcNow
             });
         }
 
@@ -100,7 +100,7 @@ namespace BlazorApp4.Domain
             }
 
             Balance += amount;
-            LastUpdated = DateTime.Now;
+            LastUpdated = DateTime.UtcNow;
             
             _transaction.Add(new Transaction
             {
@@ -129,7 +129,7 @@ namespace BlazorApp4.Domain
             }
 
             Balance -= amount;
-            LastUpdated = DateTime.Now;
+            LastUpdated = DateTime.UtcNow;
 
             _transaction.Add(new Transaction
             {
@@ -148,7 +148,7 @@ namespace BlazorApp4.Domain
             {
                 var interest = Balance * InterestRate.Value;
                 Balance += interest;
-                LastUpdated = DateTime.Now;
+                LastUpdated = DateTime.UtcNow;
 
                 _transaction.Add(new Transaction
                 {

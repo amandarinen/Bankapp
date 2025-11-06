@@ -154,6 +154,7 @@ else
                 account.AccountType,
                 account.Currency,
                 account.Balance,
+                account.LastUpdated,
                 Transactions = account.Transactions?.Select(t => new
                 {
                     t.TimeStamp,
@@ -193,6 +194,7 @@ else
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 Converters = { new JsonStringEnumConverter() }
             };
 
