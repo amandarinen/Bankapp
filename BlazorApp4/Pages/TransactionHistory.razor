@@ -90,7 +90,11 @@ else
                 <td>
                     @if(transaction.FromAccountId.HasValue || transaction.ToAccountId.HasValue)
                         {
-                         <span>@(transaction.FromAccountId.ToString()[..6]) -> @(transaction.ToAccountId.ToString()[..6])</span>
+                            <span>
+                                @(transaction.FromAccountId.HasValue? transaction.FromAccountId.Value.ToString()[..6] : "------")
+                                ->
+                                @(transaction.ToAccountId.HasValue? transaction.ToAccountId.Value.ToString()[..6] : "------")
+                            </span>
                         }
                 </td>
                 </tr>
