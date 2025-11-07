@@ -35,11 +35,11 @@ namespace BlazorApp4.Services
             var json = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", key);
             if (string.IsNullOrEmpty(json))
             {
-                Console.WriteLine($"[StorageService] No item found in localStorage for key '{key}'.");
+                Console.WriteLine($"No item found in localStorage for key '{key}'.");
                 return default;
             }
 
-            Console.WriteLine($"[StorageService] Retrieved item from localStorage for key '{key}'.");
+            Console.WriteLine($"Retrieved item from localStorage for key '{key}'.");
             return JsonSerializer.Deserialize<T>(json, _jsonSerializerOptions)!;
         }
 
@@ -53,7 +53,7 @@ namespace BlazorApp4.Services
         {
             var json = JsonSerializer.Serialize(value, _jsonSerializerOptions);
             await _jsRuntime.InvokeVoidAsync("localStorage.setItem", key, json);
-            Console.WriteLine($"[StorageService] Saved item to localStorage for key '{key}'.");
+            Console.WriteLine($"Saved item to localStorage for key '{key}'.");
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace BlazorApp4.Services
         public async Task SetItemAsStringAsync(string key, string value)
         {
             await _jsRuntime.InvokeVoidAsync("localStorage.setItem", key, value);
-            Console.WriteLine($"[StorageService] Saved string to localStorage for key '{key}'.");
+            Console.WriteLine($"Saved string to localStorage for key '{key}'.");
         }
 
         /// <summary>
@@ -77,11 +77,11 @@ namespace BlazorApp4.Services
             var value = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", key);
             if (value == null)
             {
-                Console.WriteLine($"[StorageService] No string found in localStorage for key '{key}'.");
+                Console.WriteLine($"No string found in localStorage for key '{key}'.");
             }
             else
             {
-                Console.WriteLine($"[StorageService] Retrieved string from localStorage for key '{key}'.");
+                Console.WriteLine($"Retrieved string from localStorage for key '{key}'.");
             }
 
             return value ?? string.Empty;
@@ -111,16 +111,16 @@ namespace BlazorApp4.Services
 
                 await _jsRuntime.InvokeVoidAsync("downloadFileFromBlazor", fileName, base64);
 
-                Console.WriteLine($"[StorageService] Exported data to file '{fileName}'.");
+                Console.WriteLine($"Exported data to file '{fileName}'.");
             }
             catch (JsonException ex)
             {
-                Console.WriteLine($"[StorageService] JSON serialization error: {ex.Message}");
+                Console.WriteLine($"JSON serialization error: {ex.Message}");
                 throw;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[StorageService] Export error: {ex.Message}");
+                Console.WriteLine($"Export error: {ex.Message}");
                 throw;
             }
         }

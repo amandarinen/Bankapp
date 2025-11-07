@@ -20,11 +20,11 @@
         {
             IsLocked = false;
             OnLockStateChanged?.Invoke();
-            Console.WriteLine("[LockService] App unlocked successfully.");
+            Console.WriteLine("App unlocked successfully.");
         }
         else
         {
-            Console.WriteLine("[LockService] Failed unlock attempt with incorrect PIN.");
+            Console.WriteLine("Failed unlock attempt with incorrect PIN.");
         }
     }
 
@@ -35,6 +35,6 @@
     {
         IsLocked = true;
         OnLockStateChanged?.Invoke();
-        Console.WriteLine("[LockService] App locked.");
+        Console.WriteLine("App locked.");
     }
 }

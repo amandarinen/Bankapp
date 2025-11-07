@@ -15,7 +15,7 @@
         private bool isRunning;
 
         /// <summary>
-        /// Triggered when the state of accounts changes (e.g., after deposit, withdrawal, or interest applied).
+        /// Triggered when the state of accounts changes (if deposit, withdrawal, or interest is applied).
         /// </summary>
         public event Action? StateChanged;
 
@@ -43,7 +43,7 @@
 
             await IsInitialized();
             isLoaded = true;
-            Console.WriteLine("[AccountService] Accounts loaded.");
+            Console.WriteLine("Accounts loaded.");
         }
 
         /// <summary>
@@ -81,13 +81,13 @@
                 account.InterestRate = 0.02m;
             
             if (string.IsNullOrWhiteSpace(name))
-                            throw new InvalidOperationException("Account name can not be empty.");
+                throw new InvalidOperationException("Account name can not be empty.");
             if (initialBalance < 0)
-                throw new ArgumentOutOfRangeException("Amount must be positive.");
+                throw new InvalidOperationException("Initial balance must be zero or positive.");
 
             _accounts.Add(account);
             await SaveAsync();
-            Console.WriteLine($"[AccountService] Account created: {account.Name} ({account.Id})");
+            Console.WriteLine($"Account created: {account.Name} ({account.Id})");
             return account;
         }
 
@@ -115,7 +115,7 @@
             _accounts.Clear();
             _accounts.AddRange(accounts);
             await SaveAsync();
-            Console.WriteLine("[AccountService] Accounts updated via SetAccounts (interest ensured for savings accounts).");
+            Console.WriteLine("Accounts updated via SetAccounts (interest ensured for savings accounts).");
         }
 
 
@@ -130,7 +130,7 @@
             {
                 _accounts.Remove(accountToRemove);
                 await SaveAsync();
-                Console.WriteLine($"[AccountService] Account deleted: {accountToRemove.Name} ({Id})");
+                Console.WriteLine($"Account deleted: {accountToRemove.Name} ({Id})");
             }
         }
 
@@ -146,7 +146,7 @@
                 _accounts.Remove(existing);
                 _accounts.Add(updatedAccount);
                 await SaveAsync();
-                Console.WriteLine($"[AccountService] Account updated: {updatedAccount.Name} ({updatedAccount.Id})");
+                Console.WriteLine($"Account updated: {updatedAccount.Name} ({updatedAccount.Id})");
             }
         }
 
@@ -158,19 +158,28 @@
         /// <param name="amount">Amount to transfer.</param>
         public async Task Transfer(Guid fromAccountId, Guid toAccountId, decimal amount)
         {
+            if (fromAccountId == Guid.Empty || toAccountId == Guid.Empty)
+            {
+                throw new InvalidOperationException("Both from and to accounts must be selected.");
+            }
+
             var fromAccount = _accounts.FirstOrDefault(a => a.Id == fromAccountId)
                 ?? throw new KeyNotFoundException($"Account with ID {fromAccountId} not found.");
             var toAccount = _accounts.FirstOrDefault(a => a.Id == toAccountId)
                 ?? throw new KeyNotFoundException($"Account with ID {toAccountId} not found.");
 
             if (fromAccount.Balance < amount)
+            {
                 throw new InvalidOperationException("Insufficient funds.");
+            }
             if (amount <= 0)
-                throw new ArgumentOutOfRangeException("Amount must be positive.");
+            {
+                throw new InvalidOperationException("Amount must be positive.");
+            }
 
             fromAccount.TransferTo(toAccount, amount);
             await SaveAsync();
-            Console.WriteLine($"[AccountService] Transfer: {amount} from {fromAccount.Name} to {toAccount.Name}");
+            Console.WriteLine($"Transfer: {amount} from {fromAccount.Name} to {toAccount.Name}");
         }
 
         /// <summary>
@@ -184,12 +193,12 @@
                 ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
             if (amount <= 0)
             {
-                throw new ArgumentOutOfRangeException("Amount must be positive.");
+                throw new InvalidOperationException("Amount must be positive.");
             }
 
             account.Deposit(amount);
             await SaveAsync();
-            Console.WriteLine($"[AccountService] Deposit: {amount} to {account.Name}");
+            Console.WriteLine($"Deposit: {amount} to {account.Name}");
         }
 
         /// <summary>
@@ -203,7 +212,7 @@
                 ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
             if (amount <= 0)
             {
-                throw new ArgumentOutOfRangeException("Amount must be positive.");
+                throw new InvalidOperationException("Amount must be positive.");
             }
             if (account.Balance < amount)
             {
@@ -212,7 +221,7 @@
 
             account.Withdraw(amount);
             await SaveAsync();
-            Console.WriteLine($"[AccountService] Withdraw: {amount} from {account.Name}");
+            Console.WriteLine($"Withdraw: {amount} from {account.Name}");
         }
 
         /// <summary>
@@ -220,7 +229,7 @@
         /// </summary>
         public async Task ApplyInterestAsync()
         {
-            Console.WriteLine("[AccountService] ApplyInterestAsync called.");
+            Console.WriteLine("ApplyInterestAsync called.");
 
             foreach (var account in _accounts.Where(a => a.AccountType == AccountType.Savings))
             {
@@ -247,22 +256,15 @@
             {
                 while (isRunning)
                 {
-                    try
-                    {
-                        await Task.Delay(TimeSpan.FromDays(1));
-                        await ApplyInterestAsync();
-                        Console.WriteLine("Auto Apply Interest");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[AutoApplyInterest] Error: {ex.Message}");
-                    }
+                    await Task.Delay(TimeSpan.FromDays(1));
+                    await ApplyInterestAsync();
+                    Console.WriteLine("Auto Apply Interest");
                 }
             });
         }
 
         /// <summary>
-        /// Disposes the service and stops any background tasks if necessary.
+        /// Stops any background tasks if necessary.
         /// </summary>
         public void Dispose()
         {
