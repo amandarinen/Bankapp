@@ -2,11 +2,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace BlazorApp4.Domain
-    
+namespace BlazorApp4.Domain 
 {
     /// <summary>
-    /// Bankkonto domain, hanterar transaktioner, överföringar och sparar properties kopplade till bankkontot
+    /// Bank account Domain, handles transactions and saves properties tied to the account.
     /// </summary>
     public class BankAccount : IBankAccount
     {
@@ -50,7 +49,9 @@ namespace BlazorApp4.Domain
             InterestRate = interestRate ?? 0m;
 
             if (transactions != null)
+            {
                 _transaction = transactions;
+            }
         }
 
         /// <summary>
@@ -158,6 +159,7 @@ namespace BlazorApp4.Domain
 
             var daysElapsed = (DateTime.UtcNow - LastUpdated).TotalDays;
 
+            // Ensure at least one day has passed to apply minimum daily interest
             if (daysElapsed < 1)
             {
                 daysElapsed = 1;
@@ -165,7 +167,6 @@ namespace BlazorApp4.Domain
 
             decimal dailyRate = InterestRate.GetValueOrDefault() / 365m;
             decimal interestAmount = Balance * dailyRate * (decimal)daysElapsed;
-
             Balance += Math.Round(interestAmount, 2);
             LastUpdated = DateTime.UtcNow;
 
@@ -176,7 +177,6 @@ namespace BlazorApp4.Domain
                 BalanceAfterTransaction = Balance,
                 TimeStamp = DateTime.UtcNow
             });
-
             Console.WriteLine($"[BankAccount] Interest applied to {Name}");
         }
     }

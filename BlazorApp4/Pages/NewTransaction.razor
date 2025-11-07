@@ -108,6 +108,7 @@ else
                         <div class="text-danger mb-3">@_withdrawValidationMessage</div>
                     }
 
+             <!-- Withdraw account selection -->
             <div class="mb-3">
                 <label class="form-label">Withdraw from</label>
                 <InputSelect TValue="Guid"
@@ -122,6 +123,7 @@ else
                 </InputSelect>
             </div>
 
+                    <!-- Withdraw amount -->
             <div class="mb-3">
                 <label class="form-label">Amount</label>
                 <InputNumber TValue="decimal" @bind-Value="_withdrawModel.Amount" class="form-control" />
@@ -145,6 +147,7 @@ else
                         <div class="text-danger mb-3">@_depositValidationMessage</div>
                     }
 
+             <!-- Deposit account selection -->
             <div class="mb-3">
                 <label class="form-label">Deposit to</label>
                 <InputSelect TValue="Guid"
@@ -159,6 +162,7 @@ else
                 </InputSelect>
             </div>
 
+            <!-- Deposit amount -->
             <div class="mb-3">
                 <label class="form-label">Amount</label>
                 <InputNumber TValue="decimal" @bind-Value="_depositModel.Amount" class="form-control" />

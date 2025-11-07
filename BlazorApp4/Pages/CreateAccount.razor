@@ -93,8 +93,8 @@ else
 }
 
 <!-- Code -->
-@code {
-
+@code 
+{
     // Instance variables
     private CreateAccountModel _model = new();
     private List<BankAccount> _accounts = new();
@@ -129,11 +129,9 @@ else
     private async Task CreateAccountAsync()
     {
         _createAccountValidationMessage = null;
-
         try
         {
             Console.WriteLine(_model.Name);
-
             await AccountService.CreateAccount(
                 _model.Name,
                 _model.AccountType,
@@ -149,7 +147,6 @@ else
         {
             _createAccountValidationMessage = ex.Message;
             StateHasChanged();
-
             await Task.Delay(5000);
             _createAccountValidationMessage = null;
             StateHasChanged();
@@ -165,13 +162,15 @@ else
     {
         bool confirm = await JS.InvokeAsync<bool>("confirm", $"Do you want to delete this account??");
         if (!confirm)
+        {
             return;
+        }
 
         try
         {
             await AccountService.DeleteAccount(Id);
-            _accounts = AccountService.GetAccounts(); // uppdaterar listan
-            StateHasChanged(); // uppdaterar UI
+            _accounts = AccountService.GetAccounts(); 
+            StateHasChanged(); 
         }
         catch (Exception ex)
         {

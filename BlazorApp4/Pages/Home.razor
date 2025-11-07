@@ -5,9 +5,7 @@
 @inject IStorageService StorageService
 
 <h3 class="mb-5">Welcome!</h3>
-
 <h5 class="mb-5">You can choose to import an account or export an existing account below. </h5>
-
 @if (_accounts == null)
 {
     <p>Loading accounts...</p>
@@ -28,9 +26,7 @@ else
                 <option value="@acc.Id">@acc.Name (@acc.AccountType)</option>
             }
         </select>
-
         <button class="btn btn-primary ms-2" @onclick="ExportAccounts">Export</button>
-
         <label class="btn btn-secondary ms-2 mb-0">
             Import
             <InputFile key="@fileInputKey" class="d-none" OnChange="OnFileSelected" accept=".json" />
@@ -70,8 +66,8 @@ else
 }
 
 <!-- Code -->
-@code {
-
+@code 
+{
     //Instance variables
     private List<BankAccount>? _accounts;
     private string? selectedAccountId;
@@ -88,7 +84,6 @@ else
         _message = message;
         _isError = isError;
         _showMessage = true;
-
         Task.Run(async () =>
         {
             await Task.Delay(4000);
@@ -114,7 +109,6 @@ else
         try
         {
             await AccountService.EnsureLoadedAsync();
-
             IEnumerable<BankAccount> accountsToExport;
             string fileName;
 
@@ -124,6 +118,7 @@ else
                 accountsToExport = _accounts!;
                 fileName = "all-accounts-export.json";
             }
+
             else if (Guid.TryParse(selectedAccountId, out var selectedGuid))
             {
                 // Find the selected account by Guid
@@ -134,11 +129,9 @@ else
                     return;
                 }
                 accountsToExport = new List<BankAccount> { acc };
-
-                // Use account name in file (replace invalid characters)
-                var safeName = string.Concat(acc.Name.Where(c => char.IsLetterOrDigit(c) || c == '-' || c == '_'));
-                fileName = $"{safeName}-export.json";
+                fileName = $"{acc.Name}-export.json";
             }
+
             else
             {
                 // Invalid Guid input
@@ -204,11 +197,15 @@ else
             {
                 var single = JsonSerializer.Deserialize<BankAccount>(json, options);
                 if (single != null)
+                {
                     importedAccounts = new List<BankAccount> { single };
+                }
             }
 
             if (importedAccounts == null || importedAccounts.Count == 0)
+            {
                 throw new Exception("No accounts found in the file.");
+            }
 
             await AccountService.EnsureLoadedAsync();
             var existingAccounts = AccountService.GetAccounts();

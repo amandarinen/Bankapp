@@ -56,7 +56,6 @@ else
             ↓↑ Amount @(currentKey == SortKey.Amount ? (descending ? "↓" : "↑") : "")
         </button>
     </div>
-
 }
  
 @{
@@ -104,8 +103,8 @@ else
     }
 
 <!-- Code -->
-@code {
-
+@code 
+{
     //Instance variables
     private List<BankAccount> _accounts = new();
     private BankAccount? _selectedAccount;
@@ -151,7 +150,9 @@ else
         set
         {
             if (_selectedAccountId == value)
+            {
                 return;
+            }
             _selectedAccountId = value;
             _selectedAccount = _accounts.FirstOrDefault(account => account.Id == value);
             StateHasChanged();
@@ -172,7 +173,6 @@ else
             _selectedAccountId = Guid.Empty;
             _selectedAccount = null;
         }
-
         StateHasChanged();
     }
 
@@ -192,7 +192,9 @@ else
         {
             _selectedAccount = _accounts.FirstOrDefault(a => a.Id == _selectedAccountId);
             if (_selectedAccount == null)
+            {
                 return Enumerable.Empty<Transaction>();
+            }
 
             sortedList = _selectedAccount.Transactions.AsEnumerable();
         }
