@@ -8,7 +8,7 @@ A simple Blazor WebAssembly application for managing bank accounts, including de
 
 This project was developed as part of an introductory C# and .NET course.
 
-It focuses on learning the fundamentals of Blazor, state management, and persistent data storage using localStorage — without external databases or backend services.
+It focuses on learning the fundamentals of Blazor, state management, and persistent data storage using localStorage without external databases or backend services.
 
 
 
