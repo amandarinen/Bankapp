@@ -48,16 +48,13 @@
                 <span>Log out</span>
             </a>
         </div>
-
-
     </nav>
 </div>
 
 <!-- Code -->
 @code {
-
+    // Instance variables
     private bool collapseNavMenu = true;
-
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
     /// <summary>

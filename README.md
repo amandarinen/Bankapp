@@ -1,5 +1,5 @@
-
 # BankApp – Blazor WebAssembly
+
 
 
 
@@ -14,7 +14,8 @@ It focuses on learning the fundamentals of Blazor, state management, and persist
 
 
 
-FEATURES
+## FEATURES
+
 
 
 * Create, update, and delete bank accounts.
@@ -31,7 +32,29 @@ FEATURES
 
 
 
-TECHNICAL DECISIONS
+## VG ADDITIONS 
+
+
+
+I have chosen to add three additions to my project that is required for a higher grade. 
+
+
+
+1\. 2% interest automatically applies if the account is a savings account. This works on imported accounts as well and can also be manually added.
+
+2\. JSON Import/Export makes it possible for users to export all accounts and transactions to JSON files, and import data with validation (prevents duplicate IDs).
+
+3\. A PIN code lock with a 4-digit PIN to unlock the app has been added. 
+
+
+
+
+
+
+
+## TECHNICAL DECISIONS
+
+
 
 
 LocalStorage instead of a database.
@@ -60,10 +83,14 @@ Important operations (such as saving, updating, and exporting accounts) are logg
 
 
 
-PREREQUISITES
+## PREREQUISITES
+
+
 
 
 .NET 8 SDK.
+
+Visual Studio 2022 (17.8+) with ASP.NET and web development workload.
 
 A modern web browser with localStorage support (Chrome, Edge, Firefox, Safari).
 
@@ -71,7 +98,9 @@ A modern web browser with localStorage support (Chrome, Edge, Firefox, Safari).
 
 
 
-RUNNING THE APPLICATION
+## RUNNING THE APPLICATION
+
+
 
 
 * Clone the repository: git clone https://github.com/amandarinen/Bankapp.git cd BlazorApp4
@@ -83,7 +112,9 @@ RUNNING THE APPLICATION
 
 
 
-FUTURE IMPROVEMENTS
+## FUTURE IMPROVEMENTS
+
+
 
 
 If the project were to be developed further, several enhancements could be implemented to make it more realistic. A natural next step would be to add user authentication, allowing multiple users to securely access their own accounts instead of sharing the same local data.

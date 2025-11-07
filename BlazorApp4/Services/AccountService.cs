@@ -75,16 +75,27 @@
         /// <returns>The newly created account.</returns>
         public async Task<BankAccount> CreateAccount(string name, AccountType accountType, CurrencyType currency, decimal initialBalance)
         {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new InvalidOperationException("Account name cannot be empty.");
+            }
+
+            if (!name.All(c => char.IsLetterOrDigit(c) || c == '-' || c == '_'))
+            {
+                throw new InvalidOperationException("Account name can only contain letters, numbers, '-' or '_'.");
+            }
+
+            if (initialBalance < 0)
+            {
+                throw new InvalidOperationException("Initial balance must be zero or positive.");
+            }
+
             var account = new BankAccount(name, accountType, currency, initialBalance);
 
             if (accountType == AccountType.Savings)
+            {
                 account.InterestRate = 0.02m;
-            
-            if (string.IsNullOrWhiteSpace(name))
-                throw new InvalidOperationException("Account name can not be empty.");
-            if (initialBalance < 0)
-                throw new InvalidOperationException("Initial balance must be zero or positive.");
-
+            }
             _accounts.Add(account);
             await SaveAsync();
             Console.WriteLine($"Account created: {account.Name} ({account.Id})");
@@ -111,13 +122,11 @@
                     account.InterestRate = 0.02m;
                 }
             }
-
             _accounts.Clear();
             _accounts.AddRange(accounts);
             await SaveAsync();
             Console.WriteLine("Accounts updated via SetAccounts (interest ensured for savings accounts).");
         }
-
 
         /// <summary>
         /// Deletes an account from the system by ID.
@@ -241,7 +250,6 @@
                     Console.WriteLine($"Interest applied to {account.Name}, new balance: {account.Balance}");
                 }
             }
-
             await SaveAsync();
             NotifyEvent();
         }
